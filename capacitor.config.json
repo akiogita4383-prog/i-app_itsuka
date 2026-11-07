@@ -1,0 +1,14 @@
+{
+  "appId": "com.akioyamamoto.itsuka",
+  "appName": "いつか帳",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": true,
+    "backgroundColor": "#E9ECF1",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": false }
+  }
+}

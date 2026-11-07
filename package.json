@@ -1,0 +1,26 @@
+{
+  "name": "itsuka",
+  "version": "1.0.0",
+  "private": true,
+  "description": "いつか帳 iOSアプリ（Capacitor）",
+  "scripts": {
+    "sync": "cap sync ios",
+    "open": "cap open ios",
+    "build:web": "node scripts/build-web.mjs",
+    "assets": "node scripts/make-assets.mjs"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/camera": "^8.2.6",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.6.0",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/text-zoom": "^8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
+    "sharp": "^0.35.5"
+  }
+}

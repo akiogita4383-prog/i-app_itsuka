@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9ECF1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171B24" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="いつか帳">
+<title>いつか帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9ECF1; --paper:#FFFFFF; --ink:#1F2535; --sub:#6B7385; --line:#D5DAE3; --danger:#C8423A; --linkc:#2F6FB3;
+  --gold:#E8B021; --soft-mix:26%;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --bg:#171B24; --paper:#222836; --ink:#EEF0F5; --sub:#98A0B3; --line:#333A4A; --soft-mix:22%; --linkc:#8FC0EF; --gold:#F3C94B; }
+}
+:root[data-theme="dark"]{ --bg:#171B24; --paper:#222836; --ink:#EEF0F5; --sub:#98A0B3; --line:#333A4A; --soft-mix:22%; --linkc:#8FC0EF; --gold:#F3C94B; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-tap-highlight-color:transparent}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid #7DB7F0;outline-offset:2px;border-radius:8px}
+[data-cc]{--soft:color-mix(in srgb, var(--c) var(--soft-mix), var(--paper))}
+
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 215px}
+body.album .wrap{padding-bottom:40px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px}
+h1{font-size:26px;font-weight:700;margin:0;letter-spacing:.02em;flex:none}
+.back{border:0;background:none;color:var(--ink);font-size:22px;padding:0 4px 0 0;line-height:1;align-self:center}
+.search{flex:1;min-width:0;max-width:190px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:14px}
+
+.scroller{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:4px 16px}
+.scroller::-webkit-scrollbar{display:none}
+
+/* filter tabs */
+.tabs{margin-bottom:14px}
+.tab{flex:none;min-width:70px;border:0;background:var(--paper);border-radius:12px 12px 4px 4px;padding:8px 10px 6px;text-align:center;
+  border-bottom:4px solid var(--c,var(--line));transition:transform .15s}
+.tab b{display:block;font-size:20px;line-height:1.1}
+.tab span{font-size:12px;color:var(--sub);white-space:nowrap}
+.tab[aria-pressed="true"]{transform:translateY(-3px);box-shadow:0 3px 0 var(--line);background:var(--soft)}
+.tab.all[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tab.all[aria-pressed="true"] span{color:inherit;opacity:.75}
+
+ul{list-style:none;margin:0;padding:0}
+.item{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:6px 14px 14px 6px;
+  padding:10px 12px 10px 14px;margin-bottom:8px;border-left:6px solid var(--c,var(--line))}
+.item.new{animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:none;opacity:1}}
+.thumb{flex:none;width:46px;height:46px;border-radius:10px;object-fit:cover;background:var(--bg);border:0;padding:0;display:block}
+.body{flex:1;min-width:0;border:0;background:none;text-align:left;padding:0}
+.t{display:block;word-break:break-word}
+.m{display:block;font-size:12px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.go{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:none;display:grid;place-items:center;color:var(--linkc)}
+.go svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.chk{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:none;display:grid;place-items:center}
+.chk svg{width:16px;height:16px;opacity:0}
+.done .chk{background:var(--ink);border-color:var(--ink)}
+.done .chk svg{opacity:1;stroke:var(--paper)}
+.done .t{text-decoration:line-through;color:var(--sub)}
+
+.empty{text-align:center;color:var(--sub);padding:36px 12px;font-size:15px}
+
+/* やったこと への入口 */
+.albumBtn{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;border:0;background:var(--paper);
+  border-radius:14px;padding:13px 14px;text-align:left}
+.albumBtn .lead{flex:1;min-width:0}
+.albumBtn b{display:block;font-size:15px;font-weight:700}
+.albumBtn small{display:block;font-size:12px;color:var(--sub)}
+.albumBtn .chev{color:var(--sub);font-size:18px}
+.albumBtn .mini{flex:none;display:flex}
+.albumBtn .mini img{width:30px;height:30px;border-radius:7px;object-fit:cover;border:2px solid var(--paper);margin-left:-8px;background:var(--bg)}
+
+/* やったこと（アルバム） */
+.memo{background:var(--paper);border-radius:14px;overflow:hidden;margin-bottom:12px;border-left:6px solid var(--c,var(--line))}
+.memo .shots{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.memo .shots::-webkit-scrollbar{display:none}
+.memo .shot{flex:none;width:72%;height:178px;object-fit:cover;background:var(--bg);border:0;padding:0;display:block}
+.memo .shots.one .shot{width:100%}
+.memoBody{border:0;background:none;width:100%;text-align:left;padding:12px 14px;display:block}
+.memoTop{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.chip{font-size:11px;color:var(--ink);background:var(--soft);border-radius:999px;padding:2px 9px}
+.stars{letter-spacing:1px;font-size:13px;color:var(--line)}
+.stars .on{color:var(--gold)}
+.memo h3{font-size:16px;margin:2px 0 0;font-weight:700;word-break:break-word}
+.rev{font-size:14px;color:var(--ink);margin:6px 0 0;white-space:pre-wrap;word-break:break-word}
+.memoWhen{font-size:12px;color:var(--sub);margin:8px 0 0}
+
+.doneToggle{border:0;background:none;color:var(--sub);font-size:14px;padding:14px 4px 8px}
+.foot{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:28px;font-size:13px}
+.foot button{border:0;background:none;color:var(--sub);text-decoration:underline}
+.usage{width:100%;text-align:center;color:var(--sub);font-size:12px;margin-top:8px}
+
+/* composer */
+.composer{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);
+  padding:8px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+.composer .in{max-width:560px;margin:0 auto;padding:0 12px}
+.composer .scroller{margin:0 -12px 6px;padding:4px 12px}
+.cat{flex:none;border:0;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;background:var(--bg);white-space:nowrap}
+.cat[aria-pressed="true"]{background:var(--c);color:#1F2535}
+.cat.plus{background:none;border:2px dashed var(--line);color:var(--sub);padding:4px 12px}
+.pending{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;color:var(--sub)}
+.pending img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.pending button{border:0;background:none;color:var(--danger);font-size:13px;margin-left:auto}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0;border:2px solid var(--line);background:var(--bg);border-radius:14px;padding:11px 14px;font-size:16px}
+.row input:focus{border-color:var(--ink);outline:none}
+.icon{flex:none;width:46px;border:2px solid var(--line);border-radius:14px;background:var(--bg);display:grid;place-items:center;color:var(--sub)}
+.icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icon.on{border-color:var(--ink);color:var(--ink)}
+.add{flex:none;border:0;border-radius:14px;background:var(--ink);color:var(--paper);padding:0 18px;font-weight:700}
+.add:disabled{opacity:.35}
+
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(15,18,28,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.scrim.open{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:560px;max-height:88%;overflow-y:auto;border-radius:20px 20px 0 0;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.sheet h2{font-size:17px;margin:0 0 12px}
+.sheet label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
+.sheet input[type=text],.sheet input[type=url],.sheet textarea{width:100%;border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:16px}
+.sheet textarea{min-height:72px;resize:vertical}
+.sheet .scroller{margin:0 -16px}
+.urlrow{display:flex;gap:8px}
+.urlrow .open{flex:none;border:0;border-radius:12px;background:var(--bg);color:var(--linkc);padding:0 16px;font-weight:700;text-decoration:none;display:grid;place-items:center}
+.urlrow .open[aria-disabled="true"]{opacity:.35;pointer-events:none}
+
+/* 写真（複数） */
+.shelf{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:8px 2px 2px}
+.shelf::-webkit-scrollbar{display:none}
+.slot{flex:none;position:relative;width:84px;height:84px}
+.slot img{width:100%;height:100%;object-fit:cover;border-radius:12px;background:var(--bg);display:block}
+.slot .drop{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:2px solid var(--paper);
+  background:var(--danger);color:#fff;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
+.slot.plus{border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;color:var(--sub);background:none;font-size:22px}
+
+/* やったときの記録 */
+.doneRow{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:16px}
+.doneRow span{flex:1;font-size:14px}
+.sw2{flex:none;width:52px;height:30px;border-radius:999px;border:0;background:var(--line);position:relative;transition:background .15s}
+.sw2::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--paper);transition:transform .15s}
+.sw2[aria-pressed="true"]{background:var(--gold)}
+.sw2[aria-pressed="true"]::after{transform:translateX(22px)}
+.rate{display:flex;gap:4px}
+.rate button{border:0;background:none;font-size:28px;line-height:1;padding:0 2px;color:var(--line)}
+.rate button.on{color:var(--gold)}
+.rateClear{border:0;background:none;color:var(--sub);font-size:13px;margin-left:auto;text-decoration:underline}
+.rateRow{display:flex;align-items:center}
+
+.when{font-size:13px;color:var(--sub);margin:14px 0 0}
+.acts{display:flex;gap:6px;margin-top:18px}
+.acts button{flex:1;border:0;border-radius:12px;padding:12px 6px;font-weight:700;font-size:15px}
+.share{background:var(--bg);color:var(--linkc)}
+.save{background:var(--ink);color:var(--paper)}
+.del{background:none!important;color:var(--danger);flex:none!important;padding:12px 8px!important}
+.cancel{background:var(--bg)}
+
+/* category manager */
+.crow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.crow input[type=text]{flex:1;min-width:0;padding:8px 10px!important}
+.dot{flex:none;width:30px;height:30px;border-radius:50%;border:3px solid var(--paper);box-shadow:0 0 0 2px var(--line);background:var(--c)}
+.cnum{flex:none;font-size:12px;color:var(--sub);width:36px;text-align:right}
+.x{flex:none;border:0;background:none;color:var(--danger);font-size:14px;padding:6px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 4px}
+.sw{width:30px;height:30px;border-radius:50%;border:0;background:var(--c)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
+.newcat{display:flex;gap:8px;margin-top:6px}
+.newcat button{flex:none;border:0;border-radius:12px;background:var(--ink);color:var(--paper);padding:0 16px;font-weight:700}
+.newcat button:disabled{opacity:.35}
+.help{font-size:12px;color:var(--sub);margin:6px 0 0}
+.sub{font-size:14px;margin:18px 0 4px}
+.steps{margin:4px 0 10px;padding-left:1.3em;font-size:14px;color:var(--sub)}
+.steps li{margin:3px 0}
+code{background:var(--bg);border-radius:6px;padding:1px 5px;font-size:12px}
+#recvUrl{font-size:13px}
+
+/* photo viewer */
+#viewScrim{align-items:center;background:rgba(10,12,18,.9)}
+#viewScrim img{max-width:94vw;max-height:82vh;border-radius:12px}
+
+.toast{position:fixed;left:50%;bottom:calc(180px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;display:none;z-index:30;
+  align-items:center;gap:12px;max-width:92vw}
+body.album .toast{bottom:40px}
+.toast.show{display:flex}
+.toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast button{border:0;background:none;color:#F3C94B;font-weight:700;padding:0;white-space:nowrap}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <button class="back" id="backBtn" hidden aria-label="いつか帳に戻る">←</button>
+    <h1 id="title">いつか帳</h1>
+    <input class="search" id="q" type="search" placeholder="さがす" aria-label="メモを検索">
+  </header>
+
+  <nav class="tabs scroller" id="tabs" aria-label="絞り込み"></nav>
+
+  <ul id="list"></ul>
+  <div class="empty" id="empty" hidden></div>
+
+  <button class="albumBtn" id="albumBtn" hidden>
+    <span class="mini" id="albumMini"></span>
+    <span class="lead"><b id="albumLead">やったこと</b><small id="albumSub"></small></span>
+    <span class="chev">›</span>
+  </button>
+
+  <div class="foot" id="foot">
+    <button id="manageBtn">カテゴリを編集</button>
+    <button id="recvBtn">共有から追加</button>
+    <button id="exportBtn">書き出す</button>
+    <button id="importBtn">読み込む</button>
+    <div class="usage" id="usage"></div>
+  </div>
+</div>
+
+<div class="composer" id="composer">
+  <div class="in">
+    <div class="scroller" id="cats"></div>
+    <div class="pending" id="pending" hidden>
+      <img id="pendingImg" alt="添付した写真">
+      <span>写真を添付しました</span>
+      <button id="pendingRm" type="button">取り消す</button>
+    </div>
+    <form class="row" id="form" onsubmit="return false">
+      <input id="text" type="text" enterkeyhint="done" autocomplete="off" aria-label="メモを入力">
+      <button class="icon" id="photoBtn" type="button" aria-label="写真を添付">
+        <svg viewBox="0 0 24 24"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7l1.2-1.8h6.2L15.8 6h2.7A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
+      </button>
+      <button class="add" id="addBtn" type="submit" disabled>追加</button>
+    </form>
+    <input type="file" id="fileAdd" accept="image/*" hidden>
+    <input type="file" id="fileEdit" accept="image/*" multiple hidden>
+  </div>
+</div>
+
+<!-- item edit -->
+<div class="scrim" id="editScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <h2 id="editTitle">メモを編集</h2>
+    <div class="scroller" id="editCats"></div>
+    <label for="editText">内容</label>
+    <input id="editText" type="text">
+    <label for="editUrl">URL</label>
+    <div class="urlrow">
+      <input id="editUrl" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://">
+      <a class="open" id="editOpen" target="_blank" rel="noopener" aria-disabled="true">開く</a>
+    </div>
+    <label>写真</label>
+    <div class="shelf" id="editShelf"></div>
+    <label for="editNote">メモ</label>
+    <textarea id="editNote" placeholder="値段、配信サービス、住所、材料、誰に聞いたか など"></textarea>
+
+    <div class="doneRow">
+      <span>やった</span>
+      <button type="button" class="sw2" id="doneSw" aria-pressed="false" aria-label="やったことにする"></button>
+    </div>
+    <div id="recordBox" hidden>
+      <label>評価</label>
+      <div class="rateRow">
+        <div class="rate" id="editRate" role="group" aria-label="評価"></div>
+        <button type="button" class="rateClear" id="rateClear">消す</button>
+      </div>
+      <label for="editReview">感想</label>
+      <textarea id="editReview" placeholder="どうだった？ また行きたい？ 誰と行った？"></textarea>
+    </div>
+
+    <p class="when" id="editWhen"></p>
+    <div class="acts">
+      <button class="del" id="delBtn">削除</button>
+      <button class="cancel" data-close>閉じる</button>
+      <button class="share" id="shareBtn">共有</button>
+      <button class="save" id="saveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 受け取り（共有シート・ショートカットから） -->
+<div class="scrim" id="addScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <h2 id="addTitle">受け取ったページを追加</h2>
+    <div class="scroller" id="addCats"></div>
+    <label for="addText">内容</label>
+    <input id="addText" type="text">
+    <label for="addUrl">URL</label>
+    <input id="addUrl" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://">
+    <div class="acts">
+      <button class="cancel" data-close>やめる</button>
+      <button class="save" id="addSave">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- category manager -->
+<div class="scrim" id="catScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="catTitle">
+    <h2 id="catTitle">カテゴリ</h2>
+    <div id="catRows"></div>
+    <label for="newName">新しいカテゴリ</label>
+    <div class="newcat">
+      <input id="newName" type="text" maxlength="12" placeholder="例：学びたい、会いたい、読みたい">
+      <button id="newAdd" disabled>追加</button>
+    </div>
+    <div class="swatches" id="newSwatches" role="group" aria-label="色"></div>
+    <p class="help">名前は直接書き換えられます。丸をタップすると色が変わります。</p>
+    <div class="acts"><button class="save" data-close>完了</button></div>
+  </div>
+</div>
+
+<!-- 共有から追加する設定 -->
+<div class="scrim" id="recvScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
+    <h2 id="recvTitle">ほかのアプリから追加する</h2>
+    <p class="help">Safariで見ているページを、このアプリに送って登録できます。</p>
+
+    <h3 class="sub">iPhone（ショートカットを1つ作る）</h3>
+    <ol class="steps">
+      <li>ショートカットApp →「＋」で新規作成</li>
+      <li>設定（ⓘ）で「共有シートに表示」をオン、受け取る種類を「URL」だけにする</li>
+      <li>アクション「URLをエンコード」を追加し、入力を「ショートカットの入力」にする</li>
+      <li>アクション「URLを開く」を追加し、下の文字列のうしろにエンコード結果をつなげる</li>
+      <li>名前を「いつか帳に追加」にして保存。以降Safariの共有メニューから使えます</li>
+    </ol>
+    <div class="urlrow">
+      <input id="recvUrl" type="text" readonly>
+      <button class="open" id="recvCopy" type="button">コピー</button>
+    </div>
+
+    <h3 class="sub">Android</h3>
+    <p class="help">Chromeで「アプリをインストール」しておくと、共有メニューに「いつか帳」が出ます。そのまま選べば追加できます。</p>
+
+    <h3 class="sub">カテゴリを決めて送る</h3>
+    <p class="help">上のアドレスの末尾に <code>&amp;cat=行きたい</code> のようにカテゴリ名を足すと、そのカテゴリが最初から選ばれます。</p>
+
+    <div class="acts"><button class="save" data-close>閉じる</button></div>
+  </div>
+</div>
+
+<div class="scrim" id="viewScrim"><img id="viewImg" alt="写真"></div>
+
+<div class="toast" id="toast">
+  <span id="toastMsg"></span>
+  <button id="toastAct" hidden></button>
+  <button id="undoBtn">元に戻す</button>
+</div>
+
+<script>
+(() => {
+  const KEY = 'itsuka-v1';
+  const COLORS = ['#F3C94B','#7DB7F0','#7FCB9B','#F29E7A','#B79AE8','#EE9BC0','#6CCCC6','#C9B48F','#B8BEC9'];
+  const DEFAULT_CATS = [
+    { id:'want',  name:'欲しい',   color:'#F3C94B', hint:'なにが欲しい？' },
+    { id:'watch', name:'観たい',   color:'#7DB7F0', hint:'なにを観たい？' },
+    { id:'go',    name:'行きたい', color:'#7FCB9B', hint:'どこに行きたい？' },
+    { id:'eat',   name:'食べたい', color:'#F29E7A', hint:'なにを食べたい？' },
+    { id:'make',  name:'作りたい', color:'#B79AE8', hint:'なにを作りたい？' },
+  ];
+  const MAX_EDGE = 1400, JPEG_Q = 0.75, MAX_PHOTOS = 8;
+  const $ = id => document.getElementById(id);
+
+  const store = {
+    get(k, fb){ try{ const v = localStorage.getItem(k); return v == null ? fb : JSON.parse(v); }catch(e){ return fb; } },
+    set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+  };
+
+  let items = store.get(KEY, []); if (!Array.isArray(items)) items = [];
+  let cats = store.get(KEY+':cats', null);
+  if (!Array.isArray(cats) || !cats.length) cats = DEFAULT_CATS.map(c => ({...c}));
+  let view = 'list';
+  let filter = 'all';
+  let addCat = store.get(KEY+':addcat', null);
+  let editingId = null, editCat = null, editPhotos = [], editDone = false, editRate = 0, lastAddedId = null;
+  let pendingBlob = null, pendingUrl = null, newColor = COLORS[5], undoSnap = null, toastTimer = null;
+
+  const catOf = id => cats.find(c => c.id === id) || cats[0];
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const urlIn = s => (s.match(/https?:\/\/[^\s]+/) || [])[0];
+  const hintOf = c => c.hint || `「${c.name}」を書く`;
+  const cc = c => `data-cc style="--c:${c.color}"`;
+  const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '';
+  const host = u => { try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return 'リンク'; } };
+
+  /* ---------- 写真の保管庫（IndexedDB） ---------- */
+  const DBN = 'itsuka', SHELF = 'photos';
+  let dbp = null;
+  function db(){
+    if (!dbp) dbp = new Promise((res, rej) => {
+      const r = indexedDB.open(DBN, 1);
+      r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(SHELF)) r.result.createObjectStore(SHELF); };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return dbp;
+  }
+  function tx(mode, fn){
+    return db().then(d => new Promise((res, rej) => {
+      const t = d.transaction(SHELF, mode), s = t.objectStore(SHELF);
+      let out; try { out = fn(s); } catch(e){ return rej(e); }
+      t.oncomplete = () => res(out && out.result !== undefined ? out.result : out);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error);
+    }));
+  }
+  const putPhoto = (id, blob) => tx('readwrite', s => s.put(blob, id));
+  const getPhoto = id => tx('readonly', s => s.get(id));
+  const dropPhoto = id => tx('readwrite', s => s.delete(id));
+
+  const urlCache = new Map();
+  async function photoUrl(id){
+    if (urlCache.has(id)) return urlCache.get(id);
+    let blob = null;
+    try{ blob = await getPhoto(id); }catch(e){}
+    if (!blob) return null;
+    const u = URL.createObjectURL(blob);
+    urlCache.set(id, u);
+    return u;
+  }
+  // 画像は data-pid を置いてから後追いで差し込む
+  async function hydrate(root){
+    const list = (root || document).querySelectorAll('img[data-pid]');
+    for (const el of list){
+      const u = await photoUrl(el.dataset.pid);
+      if (u) el.src = u; else el.remove();
+    }
+  }
+
+  function shrink(file){
+    return new Promise((res, rej) => {
+      if (!file || !file.type.startsWith('image/')) return rej(new Error('not image'));
+      const fr = new FileReader();
+      fr.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const s = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas');
+          cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+          const g = cv.getContext('2d');
+          g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+          g.drawImage(img, 0, 0, cv.width, cv.height);
+          cv.toBlob(b => b ? res(b) : rej(new Error('encode')), 'image/jpeg', JPEG_Q);
+        };
+        img.onerror = rej; img.src = fr.result;
+      };
+      fr.onerror = rej; fr.readAsDataURL(file);
+    });
+  }
+  async function stash(blob){ const id = 'p' + uid(); await putPhoto(id, blob); return id; }
+  const dataUrl = blob => new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+  function toBlob(d){
+    const [head, b64] = String(d).split(',');
+    const mime = (head.match(/:(.*?);/) || [,'image/jpeg'])[1];
+    const bin = atob(b64), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return new Blob([u8], { type:mime });
+  }
+
+  /* ---------- 既存データの手当て ---------- */
+  let migrated = false;
+  items.forEach(it => {
+    if (!cats.some(c => c.id === it.cat)){ it.cat = cats[0].id; migrated = true; }
+    if (it.url === undefined){
+      const u = urlIn(it.note || '');
+      if (u){ it.url = u; it.note = (it.note || '').replace(u,'').trim(); } else it.url = '';
+      migrated = true;
+    }
+    if (!Array.isArray(it.photos)){ it.photos = []; migrated = true; }
+    if (typeof it.rating !== 'number'){ it.rating = 0; migrated = true; }
+    if (typeof it.review !== 'string'){ it.review = ''; migrated = true; }
+  });
+  if (!cats.some(c => c.id === addCat)) addCat = cats[0].id;
+
+  function saveItems(){
+    try{ store.set(KEY, items); return true; }
+    catch(e){ toast('保存できませんでした。書き出してから整理してください', { undo:false }); return false; }
+  }
+  const saveCats = () => { try{ store.set(KEY+':cats', cats); }catch(e){} };
+
+  // 旧版の写真（本文に直接入っていたもの）を保管庫へ移す
+  async function liftLegacy(){
+    const old = items.filter(it => typeof it.img === 'string' && it.img.startsWith('data:'));
+    if (!old.length) return;
+    for (const it of old){
+      try{ it.photos = [await stash(toBlob(it.img))]; }catch(e){}
+      delete it.img;
+    }
+    saveItems(); render();
+  }
+
+  const WD = ['日','月','火','水','木','金','土'];
+  function fmtDate(ts){
+    const d = new Date(ts), n = new Date();
+    const same = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+    if (same(d,n)) return '今日';
+    if (same(d, new Date(n.getTime() - 86400000))) return '昨日';
+    const md = (d.getMonth()+1) + '/' + d.getDate();
+    return d.getFullYear() === n.getFullYear() ? md : d.getFullYear() + '/' + md;
+  }
+  function fmtFull(ts){
+    const d = new Date(ts);
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+  }
+  function starsHTML(n){
+    let s = '';
+    for (let i = 1; i <= 5; i++) s += `<span class="${i <= n ? 'on' : ''}">★</span>`;
+    return `<span class="stars">${s}</span>`;
+  }
+
+  /* ---------- 一覧（いつか帳） ---------- */
+  function rowHTML(it){
+    const c = catOf(it.cat);
+    const u = safeUrl(it.url);
+    const note = it.note ? it.note.split('\n')[0] : '';
+    const meta = [ filter === 'all' ? c.name : null, fmtDate(it.created), u ? host(u) : null, note || null ].filter(Boolean).join('　');
+    return `<li class="item${it.id===lastAddedId?' new':''}" ${cc(c)} data-id="${it.id}">
+      ${it.photos[0] ? `<img class="thumb" data-pid="${it.photos[0]}" alt="" data-act="view">` : ''}
+      <button class="body" data-act="edit"><span class="t">${esc(it.text)}</span><span class="m">${esc(meta)}</span></button>
+      ${u ? `<a class="go" href="${esc(u)}" target="_blank" rel="noopener" data-act="link" aria-label="リンクを開く">
+        <svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-8.6 8.6"/><path d="M19 14v4.5A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6H11"/></svg></a>` : ''}
+      <button class="chk" data-act="toggle" aria-label="やったことにする">
+        <svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      </button></li>`;
+  }
+
+  /* ---------- やったこと（アルバム） ---------- */
+  function memoHTML(it){
+    const c = catOf(it.cat);
+    const shots = it.photos.length
+      ? `<div class="shots${it.photos.length === 1 ? ' one' : ''}">` +
+        it.photos.map(p => `<img class="shot" data-pid="${p}" alt="" data-act="view" data-pid-view="${p}">`).join('') + '</div>'
+      : '';
+    return `<li class="memo" ${cc(c)} data-id="${it.id}">
+      ${shots}
+      <button class="memoBody" data-act="edit">
+        <span class="memoTop"><span class="chip">${esc(c.name)}</span>${it.rating ? starsHTML(it.rating) : ''}</span>
+        <h3>${esc(it.text)}</h3>
+        ${it.review ? `<p class="rev">${esc(it.review)}</p>` : ''}
+        <p class="memoWhen">${fmtFull(it.doneAt || it.created)}</p>
+      </button></li>`;
+  }
+
+  function renderChrome(){
+    const pool = items.filter(it => view === 'album' ? it.done : !it.done);
+    $('tabs').innerHTML =
+      `<button class="tab all" data-c="all" aria-pressed="${filter==='all'}"><b>${pool.length}</b><span>すべて</span></button>` +
+      cats.map(c => `<button class="tab" ${cc(c)} data-c="${c.id}" aria-pressed="${filter===c.id}">
+        <b>${pool.filter(it => it.cat === c.id).length}</b><span>${esc(c.name)}</span></button>`).join('');
+    $('cats').innerHTML = cats.map(c =>
+      `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${addCat===c.id}">${esc(c.name)}</button>`).join('') +
+      `<button class="cat plus" data-plus aria-label="カテゴリを追加">＋</button>`;
+    $('text').placeholder = hintOf(catOf(addCat));
+  }
+
+  function render(){
+    const q = $('q').value.trim().toLowerCase();
+    const hit = it => (filter === 'all' || it.cat === filter) &&
+      (!q || it.text.toLowerCase().includes(q) || (it.note||'').toLowerCase().includes(q)
+          || (it.review||'').toLowerCase().includes(q) || (it.url||'').toLowerCase().includes(q));
+
+    document.body.classList.toggle('album', view === 'album');
+    $('backBtn').hidden = view !== 'album';
+    $('title').textContent = view === 'album' ? 'やったこと' : 'いつか帳';
+    $('composer').hidden = view === 'album';
+    $('foot').hidden = view === 'album';
+
+    const done = items.filter(it => it.done);
+    const shown = view === 'album'
+      ? done.filter(hit).sort((a,b) => (b.doneAt||b.created) - (a.doneAt||a.created))
+      : items.filter(it => !it.done && hit(it)).sort((a,b) => b.created - a.created);
+
+    $('list').innerHTML = shown.map(view === 'album' ? memoHTML : rowHTML).join('');
+
+    const empty = $('empty');
+    empty.hidden = !!shown.length;
+    if (!shown.length) empty.textContent = q ? '見つかりませんでした'
+      : view === 'album' ? 'まだありません。丸いボタンを押すと、やったこととしてここに残ります'
+      : filter === 'all' ? '下の欄に書いて追加。思いついたらすぐどうぞ' : `「${catOf(filter).name}」はまだありません`;
+
+    const btn = $('albumBtn');
+    btn.hidden = view === 'album' || !done.length;
+    if (!btn.hidden){
+      const withRev = done.filter(it => it.rating || it.review).length;
+      $('albumLead').textContent = `やったこと（${done.length}）`;
+      $('albumSub').textContent = withRev ? `${withRev}件に感想があります` : '感想や写真を残せます';
+      const minis = done.filter(it => it.photos[0]).slice(0, 3);
+      $('albumMini').innerHTML = minis.map(it => `<img data-pid="${it.photos[0]}" alt="">`).join('');
+    }
+
+    renderChrome(); usage(); hydrate();
+    lastAddedId = null;
+  }
+
+  function usage(){
+    let chars = 0;
+    try{ for (const k in localStorage) if (k.indexOf(KEY) === 0) chars += (localStorage.getItem(k) || '').length; }catch(e){}
+    const n = items.reduce((a, it) => a + it.photos.length, 0);
+    $('usage').textContent = n ? `メモ${items.length}件・写真${n}枚` : '';
+  }
+
+  function setAddCat(id){ addCat = id; try{ store.set(KEY+':addcat', id); }catch(e){} renderChrome(); }
+
+  async function add(){
+    const raw = $('text').value.trim();
+    if (!raw && !pendingBlob) return;
+    const it = { id:uid(), cat:addCat, text:raw, url:'', note:'', photos:[], done:false,
+                 created:Date.now(), doneAt:null, rating:0, review:'' };
+    const u = urlIn(raw);
+    if (u){ it.url = u; it.text = raw.replace(u,'').trim() || host(u); }
+    if (!it.text) it.text = '写真のメモ';
+    if (pendingBlob){ try{ it.photos = [await stash(pendingBlob)]; }catch(e){} }
+    items.push(it);
+    if (!saveItems()){ items.pop(); return; }
+    lastAddedId = it.id;
+    $('text').value = ''; clearPending();
+    if (filter !== 'all' && filter !== addCat) filter = 'all';
+    render(); $('text').focus();
+  }
+
+  function toast(msg, opt){
+    opt = opt || {};
+    $('toastMsg').textContent = msg;
+    $('undoBtn').hidden = opt.undo === false;
+    const a = $('toastAct');
+    if (opt.act){ a.hidden = false; a.textContent = opt.act.label; a.onclick = () => { $('toast').classList.remove('show'); opt.act.fn(); }; }
+    else { a.hidden = true; a.onclick = null; }
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 6000);
+  }
+  const snapshot = () => { undoSnap = JSON.stringify({ items, cats }); };
+
+  function clearPending(){
+    pendingBlob = null;
+    if (pendingUrl){ URL.revokeObjectURL(pendingUrl); pendingUrl = null; }
+    $('pending').hidden = true; $('photoBtn').classList.remove('on');
+    $('fileAdd').value = ''; $('addBtn').disabled = !$('text').value.trim();
+  }
+
+  /* ---------- 受け取り（共有シート・ショートカットなど） ---------- */
+  let intakeCat = null;
+  function paintIntakeCats(){
+    $('addCats').innerHTML = cats.map(c =>
+      `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${intakeCat===c.id}">${esc(c.name)}</button>`).join('');
+  }
+  function checkIncoming(){
+    const p = new URLSearchParams(location.search);
+    const pt = (p.get('title') || '').trim();
+    const px = (p.get('text') || '').trim();
+    const pu = (p.get('url') || '').trim();
+    if (!pt && !px && !pu) return;
+
+    let u = safeUrl(pu) || urlIn(px) || urlIn(pt) || '';
+    if (!u && pu) u = safeUrl('https://' + pu);
+    let t = pt || px.replace(u, '').trim();
+    if (!t) t = u ? host(u) : '';
+    history.replaceState(null, '', location.pathname);
+    if (!t && !u) return;
+
+    const want = (p.get('cat') || '').trim();
+    const c = cats.find(x => x.id === want || x.name === want);
+    if (c) addCat = c.id;
+    intakeCat = addCat;
+    $('addText').value = t; $('addUrl').value = u;
+    paintIntakeCats();
+    $('addScrim').classList.add('open');
+  }
+  $('addCats').addEventListener('click', e => { const b = e.target.closest('.cat'); if (b){ intakeCat = b.dataset.c; paintIntakeCats(); } });
+  $('addSave').addEventListener('click', () => {
+    const t = $('addText').value.trim();
+    let u = $('addUrl').value.trim();
+    if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
+    u = safeUrl(u);
+    if (!t && !u) return closeAll();
+    const it = { id:uid(), cat:intakeCat || cats[0].id, text:t || host(u), url:u, note:'', photos:[],
+                 done:false, created:Date.now(), doneAt:null, rating:0, review:'' };
+    items.push(it);
+    if (!saveItems()){ items.pop(); return; }
+    lastAddedId = it.id; view = 'list'; filter = 'all'; setAddCat(it.cat);
+    closeAll(); render();
+    toast(`「${it.text.slice(0,12)}」を追加しました`);
+  });
+
+  /* ---------- 共有（1件ずつ） ---------- */
+  async function shareItem(it){
+    const c = catOf(it.cat);
+    const head = it.done ? `【やった・${c.name}】${it.text}` : `【${c.name}】${it.text}`;
+    const rate = it.rating ? '★'.repeat(it.rating) + '☆'.repeat(5 - it.rating) : null;
+    const text = [head, rate, it.review || null, it.note || null].filter(Boolean).join('\n');
+    const data = { title: it.text, text };
+    if (it.url) data.url = it.url;
+    try{
+      if (it.photos.length && navigator.canShare){
+        const files = [];
+        for (const pid of it.photos.slice(0, 4)){
+          const b = await getPhoto(pid);
+          if (b) files.push(new File([b], 'itsuka.jpg', { type:'image/jpeg' }));
+        }
+        if (files.length && navigator.canShare({ files })){ await navigator.share({ ...data, files }); return; }
+      }
+      if (navigator.share){ await navigator.share(data); return; }
+      throw new Error('no-share');
+    }catch(err){
+      if (err && err.name === 'AbortError') return;
+      const full = [text, it.url || null].filter(Boolean).join('\n');
+      try{
+        await navigator.clipboard.writeText(full);
+        toast('コピーしました。貼り付けて送れます', { undo:false });
+      }catch(e2){ prompt('このテキストをコピーして送ってください', full); }
+    }
+  }
+
+  /* ---------- 編集シート ---------- */
+  function openEdit(id, focusRecord){
+    const it = items.find(x => x.id === id); if (!it) return;
+    editingId = id; editCat = it.cat; editPhotos = it.photos.slice();
+    editDone = !!it.done; editRate = it.rating || 0;
+    $('editText').value = it.text;
+    $('editUrl').value = it.url || '';
+    $('editNote').value = it.note || '';
+    $('editReview').value = it.review || '';
+    $('editWhen').textContent = fmtFull(it.created) + 'に追加'
+      + (it.done && it.doneAt ? `　/　${fmtFull(it.doneAt)}にやった` : '');
+    paintEditCats(); paintUrl(); paintShelf(); paintRecord();
+    $('editScrim').classList.add('open');
+    if (focusRecord) setTimeout(() => { $('editReview').focus(); $('editReview').scrollIntoView({ block:'center' }); }, 120);
+  }
+  function paintEditCats(){
+    $('editCats').innerHTML = cats.map(c =>
+      `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${editCat===c.id}">${esc(c.name)}</button>`).join('');
+  }
+  function paintUrl(){
+    let v = $('editUrl').value.trim();
+    if (v && !/^https?:\/\//i.test(v)) v = 'https://' + v;
+    const u = safeUrl(v), a = $('editOpen');
+    a.setAttribute('aria-disabled', u ? 'false' : 'true');
+    if (u) a.href = u; else a.removeAttribute('href');
+  }
+  function paintShelf(){
+    $('editShelf').innerHTML = editPhotos.map(p =>
+      `<div class="slot" data-p="${p}"><img data-pid="${p}" alt="写真" data-act="view">
+        <button type="button" class="drop" data-act="drop" aria-label="この写真を削除">×</button></div>`).join('') +
+      (editPhotos.length < MAX_PHOTOS ? `<button type="button" class="slot plus" id="addImg" aria-label="写真を追加">＋</button>` : '');
+    hydrate($('editShelf'));
+  }
+  function paintRecord(){
+    $('doneSw').setAttribute('aria-pressed', editDone ? 'true' : 'false');
+    $('recordBox').hidden = !editDone;
+    $('editRate').innerHTML = [1,2,3,4,5].map(v =>
+      `<button type="button" data-v="${v}" class="${v <= editRate ? 'on' : ''}" aria-label="${v}">★</button>`).join('');
+  }
+
+  /* ---------- カテゴリ管理 ---------- */
+  function openCats(focusNew){
+    renderCatRows(); renderSwatches();
+    $('catScrim').classList.add('open');
+    if (focusNew) setTimeout(() => $('newName').focus(), 50);
+  }
+  function renderCatRows(){
+    $('catRows').innerHTML = cats.map(c => {
+      const n = items.filter(it => it.cat === c.id).length;
+      return `<div class="crow" data-id="${c.id}" ${cc(c)}>
+        <button class="dot" data-act="color" aria-label="${esc(c.name)}の色を変える"></button>
+        <input type="text" value="${esc(c.name)}" maxlength="12" aria-label="カテゴリ名">
+        <span class="cnum">${n}件</span>
+        <button class="x" data-act="remove" ${cats.length<2?'disabled':''}>削除</button>
+      </div>`;
+    }).join('');
+  }
+  function renderSwatches(){
+    $('newSwatches').innerHTML = COLORS.map(col =>
+      `<button class="sw" style="--c:${col}" data-col="${col}" aria-label="色 ${col}" aria-pressed="${col===newColor}"></button>`).join('');
+  }
+  function addCategory(){
+    const name = $('newName').value.trim(); if (!name) return;
+    if (cats.some(c => c.name === name)){ toast('同じ名前のカテゴリがあります', { undo:false }); return; }
+    const c = { id:'c'+uid(), name, color:newColor };
+    cats.push(c); saveCats();
+    $('newName').value = ''; $('newAdd').disabled = true;
+    newColor = COLORS[(COLORS.indexOf(newColor) + 1) % COLORS.length];
+    setAddCat(c.id);
+    renderCatRows(); renderSwatches(); render();
+  }
+
+  /* ---------- イベント ---------- */
+  $('text').addEventListener('input', e => $('addBtn').disabled = !e.target.value.trim() && !pendingBlob);
+  $('form').addEventListener('submit', add);
+  $('photoBtn').addEventListener('click', () => $('fileAdd').click());
+  $('fileAdd').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try{
+      pendingBlob = await shrink(f);
+      if (pendingUrl) URL.revokeObjectURL(pendingUrl);
+      pendingUrl = URL.createObjectURL(pendingBlob);
+      $('pendingImg').src = pendingUrl; $('pending').hidden = false;
+      $('photoBtn').classList.add('on'); $('addBtn').disabled = false;
+    }catch(err){ toast('この画像は読み込めませんでした', { undo:false }); }
+  });
+  $('pendingRm').addEventListener('click', clearPending);
+
+  $('cats').addEventListener('click', e => {
+    const b = e.target.closest('.cat'); if (!b) return;
+    if (b.hasAttribute('data-plus')) return openCats(true);
+    setAddCat(b.dataset.c); $('text').focus();
+  });
+  $('tabs').addEventListener('click', e => {
+    const b = e.target.closest('.tab'); if (!b) return;
+    filter = b.dataset.c;
+    if (filter !== 'all' && view === 'list'){ addCat = filter; try{ store.set(KEY+':addcat', filter); }catch(e2){} }
+    render();
+  });
+  $('q').addEventListener('input', render);
+  $('albumBtn').addEventListener('click', () => { view = 'album'; window.scrollTo(0,0); render(); });
+  $('backBtn').addEventListener('click', () => { view = 'list'; window.scrollTo(0,0); render(); });
+
+  async function showPhoto(pid){
+    const u = await photoUrl(pid); if (!u) return;
+    $('viewImg').src = u; $('viewScrim').classList.add('open');
+  }
+
+  $('list').addEventListener('click', e => {
+    const el = e.target.closest('[data-act]'); if (!el) return;
+    const act = el.dataset.act;
+    if (act === 'link') return;
+    const li = el.closest('[data-id]'); if (!li) return;
+    const it = items.find(x => x.id === li.dataset.id); if (!it) return;
+    if (act === 'view') return showPhoto(el.dataset.pid);
+    if (act === 'edit') return openEdit(it.id);
+    snapshot();
+    it.done = true; it.doneAt = Date.now();
+    saveItems(); render();
+    toast(`「${it.text.slice(0,12)}」をやったことに`, { act:{ label:'感想を書く', fn:() => openEdit(it.id, true) } });
+  });
+
+  $('undoBtn').addEventListener('click', () => {
+    if (undoSnap){ const s = JSON.parse(undoSnap); items = s.items; cats = s.cats; undoSnap = null; saveItems(); saveCats(); render(); }
+    $('toast').classList.remove('show');
+  });
+
+  $('editCats').addEventListener('click', e => { const b = e.target.closest('.cat'); if (b){ editCat = b.dataset.c; paintEditCats(); } });
+  $('editUrl').addEventListener('input', paintUrl);
+  $('editShelf').addEventListener('click', e => {
+    const el = e.target.closest('[data-act], #addImg'); if (!el) return;
+    if (el.id === 'addImg') return $('fileEdit').click();
+    const p = el.closest('.slot').dataset.p;
+    if (el.dataset.act === 'view') return showPhoto(p);
+    if (el.dataset.act === 'drop'){ editPhotos = editPhotos.filter(x => x !== p); paintShelf(); }
+  });
+  $('fileEdit').addEventListener('change', async e => {
+    const files = [...e.target.files];
+    for (const f of files){
+      if (editPhotos.length >= MAX_PHOTOS){ toast(`写真は1件につき${MAX_PHOTOS}枚までです`, { undo:false }); break; }
+      try{ editPhotos.push(await stash(await shrink(f))); }
+      catch(err){ toast('読み込めない画像がありました', { undo:false }); }
+    }
+    paintShelf();
+    e.target.value = '';
+  });
+  $('doneSw').addEventListener('click', () => { editDone = !editDone; paintRecord(); });
+  $('editRate').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const v = +b.dataset.v;
+    editRate = (editRate === v) ? v - 1 : v;
+    paintRecord();
+  });
+  $('rateClear').addEventListener('click', () => { editRate = 0; paintRecord(); });
+
+  function applyEdit(){
+    const it = items.find(x => x.id === editingId); if (!it) return null;
+    const before = JSON.stringify(it);
+    let u = $('editUrl').value.trim();
+    if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
+    const dropped = it.photos.filter(p => !editPhotos.includes(p));
+    it.text = $('editText').value.trim() || it.text;
+    it.url = safeUrl(u);
+    it.note = $('editNote').value.trim();
+    it.cat = editCat;
+    it.photos = editPhotos.slice();
+    it.review = $('editReview').value.trim();
+    it.rating = editRate;
+    if (editDone && !it.done) it.doneAt = Date.now();
+    if (!editDone) it.doneAt = null;
+    it.done = editDone;
+    if (!saveItems()){ Object.assign(it, JSON.parse(before)); return null; }
+    dropped.forEach(p => { dropPhoto(p).catch(()=>{}); urlCache.delete(p); });
+    return it;
+  }
+  $('saveBtn').addEventListener('click', () => { if (applyEdit()){ render(); closeAll(); } });
+  $('shareBtn').addEventListener('click', async () => {
+    const it = applyEdit(); if (!it) return;
+    render(); await shareItem(it);
+  });
+  $('delBtn').addEventListener('click', () => {
+    const it = items.find(x => x.id === editingId); if (!it) return;
+    snapshot();
+    items = items.filter(x => x.id !== editingId);
+    saveItems(); closeAll(); render();
+    toast(`「${it.text.slice(0,12)}」を削除しました`);
+  });
+
+  $('catRows').addEventListener('input', e => {
+    if (e.target.type !== 'text') return;
+    const c = cats.find(x => x.id === e.target.closest('.crow').dataset.id);
+    const v = e.target.value.trim(); if (!c || !v) return;
+    c.name = v; if (c.hint && !DEFAULT_CATS.some(d => d.id === c.id && d.name === v)) delete c.hint;
+    saveCats(); render();
+  });
+  $('catRows').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]'); if (!btn) return;
+    const c = cats.find(x => x.id === btn.closest('.crow').dataset.id); if (!c) return;
+    if (btn.dataset.act === 'color'){
+      c.color = COLORS[(COLORS.indexOf(c.color) + 1) % COLORS.length];
+      saveCats(); renderCatRows(); render(); return;
+    }
+    if (cats.length < 2) return;
+    const n = items.filter(it => it.cat === c.id).length;
+    const fallback = cats.find(x => x.id !== c.id);
+    if (n && !confirm(`「${c.name}」のメモ${n}件は「${fallback.name}」に移ります。削除しますか？`)) return;
+    snapshot();
+    items.forEach(it => { if (it.cat === c.id) it.cat = fallback.id; });
+    cats = cats.filter(x => x.id !== c.id);
+    if (filter === c.id) filter = 'all';
+    if (addCat === c.id) setAddCat(fallback.id);
+    saveItems(); saveCats(); renderCatRows(); render();
+    toast(`「${c.name}」を削除しました`);
+  });
+  $('newName').addEventListener('input', e => $('newAdd').disabled = !e.target.value.trim());
+  $('newName').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing){ e.preventDefault(); addCategory(); } });
+  $('newAdd').addEventListener('click', addCategory);
+  $('newSwatches').addEventListener('click', e => { const b = e.target.closest('.sw'); if (b){ newColor = b.dataset.col; renderSwatches(); } });
+  $('manageBtn').addEventListener('click', () => openCats(false));
+  $('recvBtn').addEventListener('click', () => {
+    const base = location.href.split('?')[0].split('#')[0];
+    $('recvUrl').value = base + '?url=';
+    $('recvScrim').classList.add('open');
+  });
+  $('recvCopy').addEventListener('click', async () => {
+    try{ await navigator.clipboard.writeText($('recvUrl').value); toast('アドレスをコピーしました', { undo:false }); }
+    catch(e){ $('recvUrl').select(); toast('選択したのでコピーしてください', { undo:false }); }
+  });
+
+  function closeAll(){ document.querySelectorAll('.scrim').forEach(s => s.classList.remove('open')); editingId = null; }
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeAll));
+  document.querySelectorAll('.scrim').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeAll(); }));
+  $('viewScrim').addEventListener('click', closeAll);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+  /* ---------- 書き出し / 読み込み（写真もふくむ） ---------- */
+  $('exportBtn').addEventListener('click', async () => {
+    toast('書き出しています…', { undo:false });
+    const out = [];
+    for (const it of items){
+      const shots = [];
+      for (const p of it.photos){
+        const b = await getPhoto(p).catch(() => null);
+        if (b) shots.push(await dataUrl(b));
+      }
+      out.push({ ...it, photos:shots });
+    }
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const blob = new Blob([JSON.stringify({ v:2, cats, items:out })], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `itsuka-${stamp}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('ファイルに書き出しました（写真もふくみます）', { undo:false });
+  });
+
+  $('importBtn').addEventListener('click', () => {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'application/json,.json';
+    inp.onchange = () => {
+      const f = inp.files[0]; if (!f) return;
+      const fr = new FileReader();
+      fr.onload = async () => {
+        try{
+          const data = JSON.parse(fr.result);
+          const inItems = Array.isArray(data) ? data : data.items;
+          const inCats = Array.isArray(data) ? [] : (data.cats || []);
+          if (!Array.isArray(inItems)) throw 0;
+          snapshot();
+          inCats.forEach(c => { if (c && c.id && c.name && !cats.some(x => x.id === c.id)) cats.push({ id:c.id, name:c.name, color:c.color || COLORS[8], hint:c.hint }); });
+          const ids = new Set(items.map(x => x.id));
+          const added = [];
+          for (const x of inItems){
+            if (!x || !x.id || !x.text || ids.has(x.id)) continue;
+            const shots = [];
+            const src = Array.isArray(x.photos) ? x.photos : (typeof x.img === 'string' ? [x.img] : []);
+            for (const s of src){
+              if (typeof s !== 'string' || !s.startsWith('data:')) continue;
+              try{ shots.push(await stash(toBlob(s))); }catch(e){}
+            }
+            added.push({
+              id:x.id, cat: cats.some(c => c.id === x.cat) ? x.cat : cats[0].id,
+              text:x.text, url: safeUrl(x.url) || urlIn(x.note || '') || '', note:x.note || '',
+              photos:shots, done:!!x.done, created:x.created || Date.now(), doneAt:x.doneAt || null,
+              rating: typeof x.rating === 'number' ? x.rating : 0, review: typeof x.review === 'string' ? x.review : ''
+            });
+          }
+          items = items.concat(added);
+          if (!saveItems()){ const s = JSON.parse(undoSnap); items = s.items; cats = s.cats; return; }
+          saveCats(); render(); toast(`${added.length}件を読み込みました`);
+        }catch(e){ toast('読み込めませんでした。書き出したJSONファイルを選んでください', { undo:false }); }
+      };
+      fr.readAsText(f);
+    };
+    inp.click();
+  });
+
+  if (migrated) saveItems();
+  render();
+  liftLegacy();
+  checkIncoming();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
