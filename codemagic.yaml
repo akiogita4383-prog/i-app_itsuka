@@ -37,7 +37,7 @@ workflows:
         - signing                      # CERTIFICATE_PRIVATE_KEY を入れた環境変数グループ
       vars:
         BUNDLE_ID: com.akioyamamoto.itsuka
-        APP_STORE_APP_ID: "0000000000" # App Store Connect のアプリ情報にある Apple ID（数字）に書き換える
+        APP_STORE_APP_ID: "6831889070"  # App Store Connect の Apple ID
     scripts:
       - name: 依存をインストール
         script: npm ci
