@@ -1,0 +1,67 @@
+# いつか帳 — クラウドの Mac（Codemagic）でビルドする
+# 手元の Mac に Xcode を入れられないため、ビルド・署名・TestFlight への送信をここで行う。
+#
+#   check      : 署名なしでシミュレータ向けにビルドし、Swift がコンパイルできるかだけ確かめる（Apple の契約不要）
+#   testflight : 署名して .ipa を作り、TestFlight に送る（Apple Developer Program と App Store Connect API キーが必要）
+
+workflows:
+  check:
+    name: ビルド確認（署名なし）
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      xcode: latest
+      node: 22
+    scripts:
+      - name: 依存をインストール
+        script: npm ci
+      - name: www を iOS プロジェクトへコピー
+        script: npm run sync
+      - name: シミュレータ向けにビルド
+        script: |
+          set -o pipefail
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | xcpretty
+
+  testflight:
+    name: TestFlight へ送る
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: itsuka        # Codemagic の Team settings → Integrations で付けた API キーの名前
+    environment:
+      xcode: latest
+      node: 22
+      groups:
+        - signing                      # CERTIFICATE_PRIVATE_KEY を入れた環境変数グループ
+      vars:
+        BUNDLE_ID: com.akioyamamoto.itsuka
+        APP_STORE_APP_ID: "0000000000" # App Store Connect のアプリ情報にある Apple ID（数字）に書き換える
+    scripts:
+      - name: 依存をインストール
+        script: npm ci
+      - name: www を iOS プロジェクトへコピー
+        script: npm run sync
+      - name: 署名ファイル（本体と共有拡張の2つ）
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "$BUNDLE_ID.ShareExtension" --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+      - name: ビルド番号を TestFlight の最新 +1 に
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo 0)
+          echo "BUILD_NO=$((LATEST + 1))" >> $CM_ENV
+      - name: .ipa を作る
+        script: |
+          xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App \
+            --archive-xcargs "CURRENT_PROJECT_VERSION=$BUILD_NO"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

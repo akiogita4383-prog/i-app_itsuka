@@ -12,7 +12,24 @@ scripts/             setup-xcode.rb / make-assets.mjs / build-web.mjs / vendor.m
 store/               ストア提出用の下書きと 1024px アイコン
 ```
 
-## はじめて Mac でビルドするまで
+## ビルドはクラウドの Mac（Codemagic）で行う
+
+手元の MacBook Air（2018）は macOS 14 までしか入らず、App Store 提出に必要な最新の Xcode が動かない。
+そのため [codemagic.yaml](codemagic.yaml) でクラウドの Mac を使ってビルドし、TestFlight 経由で iPhone に入れる。
+
+1. GitHub に非公開リポジトリを作って push し、codemagic.io に GitHub でサインインしてリポジトリを追加する
+2. ワークフロー **check** を実行する（署名なし。Swift がコンパイルできるかの確認。Apple との契約は不要）
+3. Apple Developer Program に登録する
+4. developer.apple.com → Identifiers で次を作る
+   - App Group `group.com.akioyamamoto.itsuka`
+   - App ID `com.akioyamamoto.itsuka` と `com.akioyamamoto.itsuka.ShareExtension`（どちらも App Groups にチェックし、上のグループを割り当てる）
+5. App Store Connect でアプリ「いつか帳」を新規作成し、Apple ID（数字）を `codemagic.yaml` の `APP_STORE_APP_ID` に書く
+6. App Store Connect → ユーザとアクセス → 統合 → API キーを「App Manager」権限で作り、Codemagic の Integrations に `itsuka` という名前で登録する
+7. 署名用の鍵を作って Codemagic の環境変数グループ `signing` に `CERTIFICATE_PRIVATE_KEY`（Secure）として入れる
+   `ssh-keygen -t rsa -b 2048 -m PEM -f cert_key -q -N ""` → `cert_key` の中身を貼る（ファイルは安全な場所に保管）
+8. ワークフロー **testflight** を実行する → iPhone の TestFlight アプリから入れて確かめる
+
+## （参考）Xcode が使える Mac でビルドする場合
 
 1. Xcode をインストール（App Store）し、一度起動して追加コンポーネントを入れる
 2. `npm install`

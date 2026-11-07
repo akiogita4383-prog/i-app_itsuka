@@ -94,3 +94,10 @@ end
 
 project.save
 puts "OK: #{BUNDLE_ID} / #{APP_GROUP} / iOS #{DEPLOYMENT}"
+
+# ---- 共有スキーム（クラウドの Mac でビルドするときに必要） ----
+scheme = Xcodeproj::XCScheme.new
+scheme.configure_with_targets(app, nil, launch_target: true)
+scheme.build_action.add_entry(Xcodeproj::XCScheme::BuildAction::Entry.new(ext))
+scheme.save_as(project.path, 'App', true)
+puts 'shared scheme: App'
