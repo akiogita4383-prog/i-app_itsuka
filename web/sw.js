@@ -1,9 +1,10 @@
 // いつか帳 Service Worker
 // 更新を配信するときは VERSION の数字を上げてください
-const VERSION = 'itsuka-v6';
+const VERSION = 'itsuka-v7';
 const SHELL = [
   './',
   './index.html',
+  './capacitor.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

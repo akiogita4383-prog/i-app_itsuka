@@ -4,10 +4,13 @@
   "private": true,
   "description": "いつか帳 iOSアプリ（Capacitor）",
   "scripts": {
-    "sync": "cap sync ios",
+    "vendor": "node scripts/vendor.mjs",
+    "sync": "node scripts/vendor.mjs && cap sync ios",
     "open": "cap open ios",
-    "build:web": "node scripts/build-web.mjs",
-    "assets": "node scripts/make-assets.mjs"
+    "xcode:setup": "ruby scripts/setup-xcode.rb",
+    "build:web": "node scripts/vendor.mjs && node scripts/build-web.mjs",
+    "assets": "node scripts/make-assets.mjs",
+    "serve": "npx --yes http-server www -p 8787 -c-1"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

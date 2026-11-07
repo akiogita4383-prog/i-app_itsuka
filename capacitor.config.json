@@ -5,10 +5,11 @@
   "ios": {
     "contentInset": "never",
     "scrollEnabled": true,
-    "backgroundColor": "#E9ECF1",
     "limitsNavigationsToAppBoundDomains": false
   },
   "plugins": {
-    "CapacitorHttp": { "enabled": false }
+    "CapacitorHttp": {
+      "enabled": false
+    }
   }
 }

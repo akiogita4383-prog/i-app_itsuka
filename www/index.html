@@ -13,9 +13,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="いつか帳">
 <title>いつか帳</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="capacitor.js"></script>
+<script>
+// iOSアプリ（Capacitor）か、Web版（GitHub Pages）か。同じ index.html を両方で使う
+window.ITSUKA_NATIVE = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+document.documentElement.classList.add(ITSUKA_NATIVE ? 'native' : 'web');
+// アプリは通信しない。Web版だけ Google Fonts を読む（アプリは端末の丸ゴシックを使う）
+if (!ITSUKA_NATIVE) {
+  document.write('<link rel="preconnect" href="https://fonts.googleapis.com">' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">');
+}
+</script>
 <style>
 :root{
   --bg:#E9ECF1; --paper:#FFFFFF; --ink:#1F2535; --sub:#6B7385; --line:#D5DAE3; --danger:#C8423A; --linkc:#2F6FB3;
@@ -38,7 +47,7 @@ button{cursor:pointer}
 :focus-visible{outline:3px solid #7DB7F0;outline-offset:2px;border-radius:8px}
 [data-cc]{--soft:color-mix(in srgb, var(--c) var(--soft-mix), var(--paper))}
 
-.wrap{max-width:560px;margin:0 auto;padding:18px 16px 215px}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px var(--wrap-b,215px)}
 body.album .wrap{padding-bottom:40px}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px}
 h1{font-size:26px;font-weight:700;margin:0;letter-spacing:.02em;flex:none}
@@ -195,13 +204,23 @@ code{background:var(--bg);border-radius:6px;padding:1px 5px;font-size:12px}
 #viewScrim{align-items:center;background:rgba(10,12,18,.9)}
 #viewScrim img{max-width:94vw;max-height:82vh;border-radius:12px}
 
-.toast{position:fixed;left:50%;bottom:calc(180px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+.toast{position:fixed;left:50%;bottom:var(--toast-b,calc(180px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%);
   background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;display:none;z-index:30;
   align-items:center;gap:12px;max-width:92vw}
 body.album .toast{bottom:40px}
 .toast.show{display:flex}
 .toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .toast button{border:0;background:none;color:#F3C94B;font-weight:700;padding:0;white-space:nowrap}
+
+/* 写真の取り込み元（アプリのみ） */
+.pick{display:flex;flex-direction:column;gap:8px}
+.pick button{border:0;border-radius:12px;background:var(--bg);padding:14px;font-size:16px;font-weight:700;text-align:left;display:flex;align-items:center;gap:12px}
+.pick svg{width:22px;height:22px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--sub)}
+
+/* アプリでは Web ページらしい長押しメニューと文字選択を出さない */
+html.native body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.native input,html.native textarea{-webkit-user-select:text;user-select:text}
+html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -304,6 +323,10 @@ body.album .toast{bottom:40px}
     <input id="addText" type="text">
     <label for="addUrl">URL</label>
     <input id="addUrl" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://">
+    <div id="addPhotos" hidden>
+      <label>写真</label>
+      <div class="shelf" id="addShelf"></div>
+    </div>
     <div class="acts">
       <button class="cancel" data-close>やめる</button>
       <button class="save" id="addSave">追加する</button>
@@ -356,6 +379,35 @@ body.album .toast{bottom:40px}
   </div>
 </div>
 
+<!-- 書き出し -->
+<div class="scrim" id="backupScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="backupTitle">
+    <h2 id="backupTitle">書き出し</h2>
+    <p class="help" id="backupHelp"></p>
+    <p class="help">書き出したファイルは「読み込む」で戻せます。写真もふくみます。</p>
+    <div class="acts">
+      <button class="cancel" data-close>閉じる</button>
+      <button class="save" id="backupGo">書き出す</button>
+    </div>
+  </div>
+</div>
+
+<!-- 写真の取り込み元（アプリのみ） -->
+<div class="scrim" id="srcScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="srcTitle">
+    <h2 id="srcTitle">写真を添える</h2>
+    <div class="pick">
+      <button type="button" data-src="camera">
+        <svg viewBox="0 0 24 24"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7l1.2-1.8h6.2L15.8 6h2.7A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
+        撮影する</button>
+      <button type="button" data-src="library">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg>
+        <span id="srcLibLabel">写真を選ぶ</span></button>
+    </div>
+    <div class="acts"><button class="cancel" data-src="cancel">やめる</button></div>
+  </div>
+</div>
+
 <div class="scrim" id="viewScrim"><img id="viewImg" alt="写真"></div>
 
 <div class="toast" id="toast">
@@ -377,6 +429,16 @@ body.album .toast{bottom:40px}
   ];
   const MAX_EDGE = 1400, JPEG_Q = 0.75, MAX_PHOTOS = 8;
   const $ = id => document.getElementById(id);
+
+  /* ---------- iOSアプリのときだけ使うネイティブ機能 ---------- */
+  const NATIVE = !!window.ITSUKA_NATIVE;
+  const Cap = window.Capacitor;
+  const P = NATIVE
+    ? ['Camera','Haptics','Share','Filesystem','App','TextZoom','ShareInbox']
+        .reduce((o, n) => (o[n] = Cap.registerPlugin(n), o), {})
+    : null;
+  const haptic = () => { if (NATIVE) P.Haptics.impact({ style:'LIGHT' }).catch(() => {}); };
+  const isCancel = err => /cancel/i.test(String(err && (err.message || err.code || err) || ''));
 
   const store = {
     get(k, fb){ try{ const v = localStorage.getItem(k); return v == null ? fb : JSON.parse(v); }catch(e){ return fb; } },
@@ -436,18 +498,28 @@ body.album .toast{bottom:40px}
     urlCache.set(id, u);
     return u;
   }
-  // 画像は data-pid を置いてから後追いで差し込む
-  async function hydrate(root){
-    const list = (root || document).querySelectorAll('img[data-pid]');
-    for (const el of list){
-      const u = await photoUrl(el.dataset.pid);
-      if (u) el.src = u; else el.remove();
+  // 画像は data-pid を置いてから、画面に近づいたものだけ後追いで差し込む
+  async function fillImg(el){
+    const u = await photoUrl(el.dataset.pid);
+    if (u) el.src = u; else el.remove();
+  }
+  const lazy = 'IntersectionObserver' in window
+    ? new IntersectionObserver(entries => {
+        for (const e of entries) if (e.isIntersecting){ lazy.unobserve(e.target); fillImg(e.target); }
+      }, { rootMargin:'600px 0px' })
+    : null;
+  function hydrate(root){
+    for (const el of (root || document).querySelectorAll('img[data-pid]:not([src])')){
+      const hit = urlCache.get(el.dataset.pid);
+      if (hit) el.src = hit;
+      else if (lazy) lazy.observe(el);
+      else fillImg(el);
     }
   }
 
   function shrink(file){
     return new Promise((res, rej) => {
-      if (!file || !file.type.startsWith('image/')) return rej(new Error('not image'));
+      if (!file || (file.type && !file.type.startsWith('image/'))) return rej(new Error('not image'));
       const fr = new FileReader();
       fr.onload = () => {
         const img = new Image();
@@ -656,42 +728,82 @@ body.album .toast{bottom:40px}
   }
 
   /* ---------- 受け取り（共有シート・ショートカットなど） ---------- */
-  let intakeCat = null;
+  let intakeCat = null, intakeShots = [], intakeNote = '';
+  function paintIntakeShelf(){
+    $('addPhotos').hidden = !intakeShots.length;
+    $('addShelf').innerHTML = intakeShots.map((d, i) =>
+      `<div class="slot" data-i="${i}"><img src="${d}" alt="写真">
+        <button type="button" class="drop" data-act="drop" aria-label="この写真を外す">×</button></div>`).join('');
+  }
+  $('addShelf').addEventListener('click', e => {
+    const b = e.target.closest('[data-act="drop"]'); if (!b) return;
+    intakeShots.splice(+b.closest('.slot').dataset.i, 1); paintIntakeShelf();
+  });
   function paintIntakeCats(){
     $('addCats').innerHTML = cats.map(c =>
       `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${intakeCat===c.id}">${esc(c.name)}</button>`).join('');
   }
-  function checkIncoming(){
-    const p = new URLSearchParams(location.search);
+  // 受け取り口は ?title=&text=&url=&cat= の1つだけ。
+  // Web版はアドレスから、アプリは共有拡張が置いた内容を同じ形に直して渡す（shots は写真の data URL）
+  function checkIncoming(p, shots){
+    const fromQuery = !p;
+    p = p || new URLSearchParams(location.search);
+    shots = (shots || []).slice(0, MAX_PHOTOS);
     const pt = (p.get('title') || '').trim();
     const px = (p.get('text') || '').trim();
     const pu = (p.get('url') || '').trim();
-    if (!pt && !px && !pu) return;
+    if (!pt && !px && !pu && !shots.length) return false;
 
     let u = safeUrl(pu) || urlIn(px) || urlIn(pt) || '';
     if (!u && pu) u = safeUrl('https://' + pu);
-    let t = pt || px.replace(u, '').trim();
+    // テキストは1行目を内容に、残りはメモに残す
+    const lines = (u ? px.replace(u, '') : px).split('\n').map(x => x.trim()).filter(Boolean);
+    let t = pt || lines.shift() || '';
     if (!t) t = u ? host(u) : '';
-    history.replaceState(null, '', location.pathname);
-    if (!t && !u) return;
+    if (fromQuery) history.replaceState(null, '', location.pathname);
+    if (!t && !u && !shots.length) return false;
 
     const want = (p.get('cat') || '').trim();
     const c = cats.find(x => x.id === want || x.name === want);
     if (c) addCat = c.id;
-    intakeCat = addCat;
+    intakeCat = addCat; intakeShots = shots; intakeNote = lines.join('\n');
+    $('addTitle').textContent = u ? '受け取ったページを追加' : shots.length ? '受け取った写真を追加' : '受け取ったメモを追加';
     $('addText').value = t; $('addUrl').value = u;
-    paintIntakeCats();
+    paintIntakeCats(); paintIntakeShelf();
+    closeAll();
     $('addScrim').classList.add('open');
+    return true;
+  }
+
+  // アプリ：共有シートから届いたものを、起動時と復帰時に読む。シートを開いてから破棄する
+  let inboxBusy = false;
+  async function takeInbox(){
+    if (!NATIVE || inboxBusy) return;
+    inboxBusy = true;
+    try{
+      const r = await P.ShareInbox.take();
+      if (r && r.found){
+        const p = new URLSearchParams();
+        if (r.title) p.set('title', r.title);
+        if (r.text) p.set('text', r.text);
+        if (r.url) p.set('url', r.url);
+        checkIncoming(p, r.images || []);
+        await P.ShareInbox.clear();
+      }
+    }catch(e){}
+    inboxBusy = false;
   }
   $('addCats').addEventListener('click', e => { const b = e.target.closest('.cat'); if (b){ intakeCat = b.dataset.c; paintIntakeCats(); } });
-  $('addSave').addEventListener('click', () => {
+  $('addSave').addEventListener('click', async () => {
     const t = $('addText').value.trim();
     let u = $('addUrl').value.trim();
     if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
     u = safeUrl(u);
-    if (!t && !u) return closeAll();
-    const it = { id:uid(), cat:intakeCat || cats[0].id, text:t || host(u), url:u, note:'', photos:[],
-                 done:false, created:Date.now(), doneAt:null, rating:0, review:'' };
+    if (!t && !u && !intakeShots.length) return closeAll();
+    const it = { id:uid(), cat:intakeCat || cats[0].id, text:t || (u ? host(u) : '写真のメモ'), url:u,
+                 note:intakeNote, photos:[], done:false, created:Date.now(), doneAt:null, rating:0, review:'' };
+    for (const d of intakeShots){ try{ it.photos.push(await stash(toBlob(d))); }catch(e){} }
+    intakeShots = []; intakeNote = '';
     items.push(it);
     if (!saveItems()){ items.pop(); return; }
     lastAddedId = it.id; view = 'list'; filter = 'all'; setAddCat(it.cat);
@@ -707,6 +819,20 @@ body.album .toast{bottom:40px}
     const text = [head, rate, it.review || null, it.note || null].filter(Boolean).join('\n');
     const data = { title: it.text, text };
     if (it.url) data.url = it.url;
+    if (NATIVE){
+      // ネイティブの共有シート。写真は一時ファイルにして添付する
+      try{
+        const files = [];
+        for (const [i, pid] of it.photos.slice(0, 4).entries()){
+          const b = await getPhoto(pid).catch(() => null); if (!b) continue;
+          const r = await P.Filesystem.writeFile({ path:`share/itsuka-${i + 1}.jpg`, directory:'CACHE',
+            recursive:true, data:(await dataUrl(b)).split(',')[1] });
+          files.push(r.uri);
+        }
+        await P.Share.share({ ...data, files: files.length ? files : undefined, dialogTitle:'共有' });
+      }catch(err){ if (!isCancel(err)) toast('共有できませんでした', { undo:false }); }
+      return;
+    }
     try{
       if (it.photos.length && navigator.canShare){
         const files = [];
@@ -800,19 +926,68 @@ body.album .toast{bottom:40px}
     renderCatRows(); renderSwatches(); render();
   }
 
+  /* ---------- 写真の取り込み（アプリはネイティブのカメラと写真ピッカー） ---------- */
+  let srcResolve = null;
+  function askSource(multi){
+    $('srcLibLabel').textContent = multi ? '写真を選ぶ（複数可）' : '写真を選ぶ';
+    $('srcScrim').classList.add('open');
+    return new Promise(res => { srcResolve = res; });
+  }
+  function endSource(v){
+    $('srcScrim').classList.remove('open');
+    const r = srcResolve; srcResolve = null; if (r) r(v);
+  }
+  $('srcScrim').addEventListener('click', e => {
+    const b = e.target.closest('[data-src]');
+    if (b) return endSource(b.dataset.src === 'cancel' ? null : b.dataset.src);
+    if (e.target === $('srcScrim')) endSource(null);
+  });
+  // 縮小済み JPEG の Blob を最大 limit 枚返す。やめたときは空
+  async function pickPhotos(limit){
+    const src = await askSource(limit > 1);
+    if (!src) return [];
+    let res = [];
+    try{
+      if (src === 'camera') res = [await P.Camera.takePhoto({ quality:90, correctOrientation:true })];
+      else {
+        const r = await P.Camera.chooseFromGallery({ allowMultipleSelection: limit > 1, limit, quality:90, correctOrientation:true });
+        res = (r && r.results) || [];
+      }
+    }catch(err){
+      if (!isCancel(err)) toast(/denied|permission|access|許可/i.test(String(err && err.message))
+        ? '設定アプリで、いつか帳に写真とカメラの使用を許可してください' : '写真を読み込めませんでした', { undo:false });
+      return [];
+    }
+    const out = [];
+    for (const r of res.slice(0, limit)){
+      try{
+        const path = r.webPath || Cap.convertFileSrc(r.uri);
+        out.push(await shrink(await (await fetch(path)).blob()));
+      }catch(e){ toast('読み込めない画像がありました', { undo:false }); }
+    }
+    return out;
+  }
+
+  function setPending(blob){
+    pendingBlob = blob;
+    if (pendingUrl) URL.revokeObjectURL(pendingUrl);
+    pendingUrl = URL.createObjectURL(pendingBlob);
+    $('pendingImg').src = pendingUrl; $('pending').hidden = false;
+    $('photoBtn').classList.add('on'); $('addBtn').disabled = false;
+  }
+
   /* ---------- イベント ---------- */
   $('text').addEventListener('input', e => $('addBtn').disabled = !e.target.value.trim() && !pendingBlob);
   $('form').addEventListener('submit', add);
-  $('photoBtn').addEventListener('click', () => $('fileAdd').click());
+  $('photoBtn').addEventListener('click', async () => {
+    if (!NATIVE) return $('fileAdd').click();
+    const [b] = await pickPhotos(1);
+    if (b) setPending(b);
+  });
   $('fileAdd').addEventListener('change', async e => {
     const f = e.target.files[0]; if (!f) return;
-    try{
-      pendingBlob = await shrink(f);
-      if (pendingUrl) URL.revokeObjectURL(pendingUrl);
-      pendingUrl = URL.createObjectURL(pendingBlob);
-      $('pendingImg').src = pendingUrl; $('pending').hidden = false;
-      $('photoBtn').classList.add('on'); $('addBtn').disabled = false;
-    }catch(err){ toast('この画像は読み込めませんでした', { undo:false }); }
+    try{ setPending(await shrink(f)); }
+    catch(err){ toast('この画像は読み込めませんでした', { undo:false }); }
   });
   $('pendingRm').addEventListener('click', clearPending);
 
@@ -846,6 +1021,7 @@ body.album .toast{bottom:40px}
     if (act === 'edit') return openEdit(it.id);
     snapshot();
     it.done = true; it.doneAt = Date.now();
+    haptic();
     saveItems(); render();
     toast(`「${it.text.slice(0,12)}」をやったことに`, { act:{ label:'感想を書く', fn:() => openEdit(it.id, true) } });
   });
@@ -857,9 +1033,19 @@ body.album .toast{bottom:40px}
 
   $('editCats').addEventListener('click', e => { const b = e.target.closest('.cat'); if (b){ editCat = b.dataset.c; paintEditCats(); } });
   $('editUrl').addEventListener('input', paintUrl);
-  $('editShelf').addEventListener('click', e => {
+  $('editShelf').addEventListener('click', async e => {
     const el = e.target.closest('[data-act], #addImg'); if (!el) return;
-    if (el.id === 'addImg') return $('fileEdit').click();
+    if (el.id === 'addImg'){
+      if (!NATIVE) return $('fileEdit').click();
+      const id = editingId;
+      const blobs = await pickPhotos(MAX_PHOTOS - editPhotos.length);
+      if (editingId !== id) return;
+      for (const b of blobs){
+        if (editPhotos.length >= MAX_PHOTOS) break;
+        try{ editPhotos.push(await stash(b)); }catch(err){}
+      }
+      return paintShelf();
+    }
     const p = el.closest('.slot').dataset.p;
     if (el.dataset.act === 'view') return showPhoto(p);
     if (el.dataset.act === 'drop'){ editPhotos = editPhotos.filter(x => x !== p); paintShelf(); }
@@ -874,7 +1060,7 @@ body.album .toast{bottom:40px}
     paintShelf();
     e.target.value = '';
   });
-  $('doneSw').addEventListener('click', () => { editDone = !editDone; paintRecord(); });
+  $('doneSw').addEventListener('click', () => { editDone = !editDone; if (editDone) haptic(); paintRecord(); });
   $('editRate').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     const v = +b.dataset.v;
@@ -957,32 +1143,67 @@ body.album .toast{bottom:40px}
     catch(e){ $('recvUrl').select(); toast('選択したのでコピーしてください', { undo:false }); }
   });
 
-  function closeAll(){ document.querySelectorAll('.scrim').forEach(s => s.classList.remove('open')); editingId = null; }
+  function closeAll(){
+    document.querySelectorAll('.scrim').forEach(s => s.classList.remove('open'));
+    editingId = null;
+    if (srcResolve) endSource(null);
+  }
   document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeAll));
-  document.querySelectorAll('.scrim').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeAll(); }));
-  $('viewScrim').addEventListener('click', closeAll);
+  document.querySelectorAll('.scrim').forEach(s => {
+    if (s.id === 'srcScrim' || s.id === 'viewScrim') return;
+    s.addEventListener('click', e => { if (e.target === s) closeAll(); });
+  });
+  // 写真ビューアはどこをタップしても閉じる。下の編集シートは閉じない
+  $('viewScrim').addEventListener('click', () => $('viewScrim').classList.remove('open'));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
 
   /* ---------- 書き出し / 読み込み（写真もふくむ） ---------- */
-  $('exportBtn').addEventListener('click', async () => {
-    toast('書き出しています…', { undo:false });
-    const out = [];
-    for (const it of items){
-      const shots = [];
-      for (const p of it.photos){
-        const b = await getPhoto(p).catch(() => null);
-        if (b) shots.push(await dataUrl(b));
-      }
-      out.push({ ...it, photos:shots });
-    }
+  $('backupHelp').textContent = NATIVE
+    ? 'メモと写真は、この iPhone の中だけに保存されています。アプリを削除するとすべて消えます。ときどき書き出して、「ファイル」や iCloud Drive に保存しておいてください。'
+    : 'メモと写真は、このブラウザの中だけに保存されています。ブラウザのデータを消すと消えます。ときどき書き出して保存しておいてください。';
+  $('exportBtn').addEventListener('click', () => $('backupScrim').classList.add('open'));
+  $('backupGo').addEventListener('click', () => { closeAll(); exportAll(); });
+
+  const stamp = () => {
     const d = new Date();
-    const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  };
+  async function itemWithShots(it){
+    const shots = [];
+    for (const p of it.photos){
+      const b = await getPhoto(p).catch(() => null);
+      if (b) shots.push(await dataUrl(b));
+    }
+    return { ...it, photos:shots };
+  }
+  // アプリ：1件ずつファイルに追記してから共有シートで渡す（写真が多くても一度にメモリへ載せない）
+  async function exportNative(){
+    const FS = P.Filesystem, name = `itsuka-${stamp()}.json`;
+    const at = { path:'export/' + name, directory:'CACHE', encoding:'utf8' };
+    try{
+      await FS.writeFile({ ...at, recursive:true, data:'{"v":2,"cats":' + JSON.stringify(cats) + ',"items":[' });
+      for (let i = 0; i < items.length; i++)
+        await FS.appendFile({ ...at, data:(i ? ',' : '') + JSON.stringify(await itemWithShots(items[i])) });
+      await FS.appendFile({ ...at, data:']}' });
+      const { uri } = await FS.getUri({ path:at.path, directory:at.directory });
+      $('toast').classList.remove('show');
+      await P.Share.share({ title:name, files:[uri], dialogTitle:'書き出したファイルを保存' });
+    }catch(err){
+      if (!isCancel(err)) toast('書き出せませんでした', { undo:false });
+    }
+    $('toast').classList.remove('show');
+  }
+  async function exportAll(){
+    toast('書き出しています…', { undo:false });
+    if (NATIVE) return exportNative();
+    const out = [];
+    for (const it of items) out.push(await itemWithShots(it));
     const blob = new Blob([JSON.stringify({ v:2, cats, items:out })], { type:'application/json' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `itsuka-${stamp}.json`; a.click();
+    a.href = URL.createObjectURL(blob); a.download = `itsuka-${stamp()}.json`; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     toast('ファイルに書き出しました（写真もふくみます）', { undo:false });
-  });
+  }
 
   $('importBtn').addEventListener('click', () => {
     const inp = document.createElement('input');
@@ -1025,14 +1246,41 @@ body.album .toast{bottom:40px}
     inp.click();
   });
 
+  /* ---------- 入力バーの高さに合わせて一覧の余白とトーストの位置を決める（文字サイズ変更に追従） ---------- */
+  function fitComposer(){
+    const h = $('composer').hidden ? 0 : $('composer').offsetHeight;
+    const r = document.documentElement.style;
+    r.setProperty('--wrap-b', (h ? h + 60 : 40) + 'px');
+    r.setProperty('--toast-b', (h ? h + 30 : 40) + 'px');
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(fitComposer).observe($('composer'));
+
+  // アプリ：端末の「文字サイズ」（Dynamic Type）に合わせる。極端な倍率は崩れない範囲に収める
+  async function fitText(){
+    try{
+      const { value } = await P.TextZoom.getPreferred();
+      await P.TextZoom.set({ value: Math.min(1.6, Math.max(0.85, value || 1)) });
+    }catch(e){}
+  }
+
+  if (NATIVE){
+    $('recvBtn').hidden = true;       // 共有シートが標準で使えるので、ショートカットの設定案内は出さない
+    P.App.addListener('appStateChange', st => { if (st.isActive){ takeInbox(); fitText(); } });
+    P.App.addListener('appUrlOpen', () => takeInbox());
+    fitText();
+  }
+
   if (migrated) saveItems();
   render();
+  fitComposer();
   liftLegacy();
   checkIncoming();
+  takeInbox();
 })();
 </script>
 <script>
-if ('serviceWorker' in navigator) {
+// Service Worker は Web版だけ（アプリは端末内のファイルを直接読むので不要）
+if (!window.ITSUKA_NATIVE && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 </script>
