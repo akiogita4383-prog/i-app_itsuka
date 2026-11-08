@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#E9ECF1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#171B24" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F7F1E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1915" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -18,89 +18,115 @@
 // iOSアプリ（Capacitor）か、Web版（GitHub Pages）か。同じ index.html を両方で使う
 window.ITSUKA_NATIVE = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 document.documentElement.classList.add(ITSUKA_NATIVE ? 'native' : 'web');
-// アプリは通信しない。Web版だけ Google Fonts を読む（アプリは端末の丸ゴシックを使う）
+// 個人用の帳は通信しない。Web版だけ Google Fonts を読む（アプリは端末の丸ゴシックを使う）
 if (!ITSUKA_NATIVE) {
   document.write('<link rel="preconnect" href="https://fonts.googleapis.com">' +
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
     '<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">');
 }
 </script>
+<script src="config.js"></script>
+<script src="cloud.js"></script>
 <style>
 :root{
-  --bg:#E9ECF1; --paper:#FFFFFF; --ink:#1F2535; --sub:#6B7385; --line:#D5DAE3; --danger:#C8423A; --linkc:#2F6FB3;
-  --gold:#E8B021; --soft-mix:26%;
+  --bg:#F7F1E8; --bg2:#FBF8F3; --paper:#FFFFFF; --ink:#2A2520; --sub:#8A8075; --line:#E8E0D4; --field:#F4EEE5;
+  --danger:#D9473F; --linkc:#2F6FB3; --gold:#F2B630; --soft-mix:22%;
+  --shadow:0 2px 10px rgba(90,64,30,.08); --shadow-up:0 -6px 24px rgba(90,64,30,.10);
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){ --bg:#171B24; --paper:#222836; --ink:#EEF0F5; --sub:#98A0B3; --line:#333A4A; --soft-mix:22%; --linkc:#8FC0EF; --gold:#F3C94B; }
+  :root:not([data-theme="light"]){ --bg:#1C1915; --bg2:#221E1A; --paper:#2A2621; --ink:#F3EEE6; --sub:#A99F92; --line:#3B362F; --field:#332E28;
+    --linkc:#8FC0EF; --gold:#F3C94B; --soft-mix:26%; --shadow:0 2px 10px rgba(0,0,0,.35); --shadow-up:0 -6px 24px rgba(0,0,0,.4); }
 }
-:root[data-theme="dark"]{ --bg:#171B24; --paper:#222836; --ink:#EEF0F5; --sub:#98A0B3; --line:#333A4A; --soft-mix:22%; --linkc:#8FC0EF; --gold:#F3C94B; }
+:root[data-theme="dark"]{ --bg:#1C1915; --bg2:#221E1A; --paper:#2A2621; --ink:#F3EEE6; --sub:#A99F92; --line:#3B362F; --field:#332E28;
+  --linkc:#8FC0EF; --gold:#F3C94B; --soft-mix:26%; --shadow:0 2px 10px rgba(0,0,0,.35); --shadow-up:0 -6px 24px rgba(0,0,0,.4); }
 *,*::before,*::after{box-sizing:inherit}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+body{margin:0;min-height:100%;background:var(--bg) linear-gradient(170deg,var(--bg2),var(--bg) 40%) fixed;color:var(--ink);
   font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
   font-size:16px;line-height:1.55;-webkit-tap-highlight-color:transparent}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
+button:disabled{cursor:default}
 [hidden]{display:none!important}
 :focus-visible{outline:3px solid #7DB7F0;outline-offset:2px;border-radius:8px}
 [data-cc]{--soft:color-mix(in srgb, var(--c) var(--soft-mix), var(--paper))}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
-.wrap{max-width:560px;margin:0 auto;padding:18px 16px var(--wrap-b,215px)}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px var(--wrap-b,215px)}
 body.album .wrap{padding-bottom:40px}
-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px}
-h1{font-size:26px;font-weight:700;margin:0;letter-spacing:.02em;flex:none}
-.back{border:0;background:none;color:var(--ink);font-size:22px;padding:0 4px 0 0;line-height:1;align-self:center}
-.search{flex:1;min-width:0;max-width:190px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:14px}
 
-.scroller{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:4px 16px}
+/* ヘッダー */
+header{display:flex;align-items:center;gap:8px;margin-bottom:10px;min-height:44px}
+.back{border:0;background:none;color:var(--ink);font-size:24px;padding:0 4px 0 0;line-height:1}
+.nbBtn{display:flex;align-items:center;gap:6px;border:0;background:none;padding:0;min-width:0;text-align:left}
+.nbBtn:disabled{opacity:1}
+h1{font-size:28px;font-weight:700;margin:0;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.caret{width:16px;height:16px;color:var(--sub);flex:none}
+.dots{display:flex;flex:none}
+.dots span{width:24px;height:24px;border-radius:50%;margin-left:-6px;border:2px solid var(--bg);display:grid;place-items:center;
+  font-size:11px;font-weight:700;color:#fff;background:var(--c)}
+.dots span:first-child{margin-left:0}
+.syncBadge{flex:none;font-size:11px;color:var(--sub);background:var(--field);border-radius:999px;padding:2px 8px}
+.spacer{flex:1}
+.iconBtn{flex:none;width:44px;height:44px;border:0;background:none;border-radius:12px;display:grid;place-items:center;color:var(--ink)}
+.searchRow{display:flex;gap:8px;align-items:center;margin:-2px 0 10px}
+.search{flex:1;min-width:0;border:0;background:var(--paper);box-shadow:var(--shadow);border-radius:12px;padding:10px 14px;font-size:16px}
+.searchRow button{border:0;background:none;color:var(--linkc);font-size:15px;padding:6px 2px}
+
+.scroller{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:4px 16px}
 .scroller::-webkit-scrollbar{display:none}
 
-/* filter tabs */
-.tabs{margin-bottom:14px}
-.tab{flex:none;min-width:70px;border:0;background:var(--paper);border-radius:12px 12px 4px 4px;padding:8px 10px 6px;text-align:center;
-  border-bottom:4px solid var(--c,var(--line));transition:transform .15s}
-.tab b{display:block;font-size:20px;line-height:1.1}
-.tab span{font-size:12px;color:var(--sub);white-space:nowrap}
-.tab[aria-pressed="true"]{transform:translateY(-3px);box-shadow:0 3px 0 var(--line);background:var(--soft)}
-.tab.all[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.tab.all[aria-pressed="true"] span{color:inherit;opacity:.75}
+/* カテゴリタブ */
+.tabs{margin-bottom:14px;padding-top:10px;padding-bottom:10px}
+.tab{flex:none;position:relative;min-width:66px;min-height:54px;border:0;border-radius:14px;padding:8px 12px;text-align:center;
+  color:var(--fg,#fff);background:linear-gradient(160deg,color-mix(in srgb,var(--c) 70%,#fff),var(--c));
+  box-shadow:0 3px 8px color-mix(in srgb,var(--c) 35%,transparent);transition:transform .15s,box-shadow .15s}
+.tab .en{display:block;font-size:13px;font-weight:700;letter-spacing:.05em;line-height:1.25}
+.tab .ja{display:block;font-size:11px;line-height:1.3;opacity:.92;white-space:nowrap}
+.tab .solo{display:block;font-size:14px;font-weight:700;line-height:1.3;white-space:nowrap;padding:6px 0}
+.tab .n{position:absolute;top:-7px;right:-6px;min-width:21px;height:21px;border-radius:11px;padding:0 6px;background:var(--paper);
+  color:var(--ink);font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.tab[aria-pressed="true"]{transform:translateY(-3px);box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--c),0 8px 16px color-mix(in srgb,var(--c) 40%,transparent)}
+.tab.all{--c:var(--ink);--fg:var(--paper);background:var(--ink)}
 
+/* メモの行 */
 ul{list-style:none;margin:0;padding:0}
-.item{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:6px 14px 14px 6px;
-  padding:10px 12px 10px 14px;margin-bottom:8px;border-left:6px solid var(--c,var(--line))}
+.item{position:relative;display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:14px;
+  padding:12px 12px 12px 20px;margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden}
+.item::before,.memo::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--c,var(--line))}
 .item.new{animation:pop .35s ease-out}
 @keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:none;opacity:1}}
-.thumb{flex:none;width:46px;height:46px;border-radius:10px;object-fit:cover;background:var(--bg);border:0;padding:0;display:block}
+.thumb{flex:none;width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--field);border:0;padding:0;display:block}
 .body{flex:1;min-width:0;border:0;background:none;text-align:left;padding:0}
-.t{display:block;word-break:break-word}
+.top{display:flex;align-items:baseline;gap:8px}
+.t{flex:1;min-width:0;display:block;font-weight:700;word-break:break-word}
+.d{flex:none;font-size:12px;color:var(--sub)}
 .m{display:block;font-size:12px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.go{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:none;display:grid;place-items:center;color:var(--linkc)}
+.go{flex:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:none;display:grid;place-items:center;color:var(--linkc)}
 .go svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.chk{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:none;display:grid;place-items:center}
+.chk{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:none;display:grid;place-items:center}
 .chk svg{width:16px;height:16px;opacity:0}
-.done .chk{background:var(--ink);border-color:var(--ink)}
-.done .chk svg{opacity:1;stroke:var(--paper)}
-.done .t{text-decoration:line-through;color:var(--sub)}
 
 .empty{text-align:center;color:var(--sub);padding:36px 12px;font-size:15px}
 
 /* やったこと への入口 */
-.albumBtn{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;border:0;background:var(--paper);
-  border-radius:14px;padding:13px 14px;text-align:left}
+.albumBtn{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;border:0;background:var(--paper);box-shadow:var(--shadow);
+  border-radius:14px;padding:14px;text-align:left}
 .albumBtn .lead{flex:1;min-width:0}
 .albumBtn b{display:block;font-size:15px;font-weight:700}
 .albumBtn small{display:block;font-size:12px;color:var(--sub)}
-.albumBtn .chev{color:var(--sub);font-size:18px}
+.albumBtn .chev{color:var(--sub);font-size:20px}
 .albumBtn .mini{flex:none;display:flex}
-.albumBtn .mini img{width:30px;height:30px;border-radius:7px;object-fit:cover;border:2px solid var(--paper);margin-left:-8px;background:var(--bg)}
+.albumBtn .mini img{width:32px;height:32px;border-radius:8px;object-fit:cover;border:2px solid var(--paper);margin-left:-8px;background:var(--field)}
+.albumBtn .mini img:first-child{margin-left:0}
 
 /* やったこと（アルバム） */
-.memo{background:var(--paper);border-radius:14px;overflow:hidden;margin-bottom:12px;border-left:6px solid var(--c,var(--line))}
+.memo{position:relative;background:var(--paper);border-radius:14px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);padding-left:8px}
 .memo .shots{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .memo .shots::-webkit-scrollbar{display:none}
-.memo .shot{flex:none;width:72%;height:178px;object-fit:cover;background:var(--bg);border:0;padding:0;display:block}
+.memo .shot{flex:none;width:76%;height:190px;object-fit:cover;background:var(--field);border:0;padding:0;display:block}
 .memo .shots.one .shot{width:100%}
 .memoBody{border:0;background:none;width:100%;text-align:left;padding:12px 14px;display:block}
 .memoTop{display:flex;align-items:center;gap:8px;margin-bottom:2px}
@@ -109,86 +135,96 @@ ul{list-style:none;margin:0;padding:0}
 .stars .on{color:var(--gold)}
 .memo h3{font-size:16px;margin:2px 0 0;font-weight:700;word-break:break-word}
 .rev{font-size:14px;color:var(--ink);margin:6px 0 0;white-space:pre-wrap;word-break:break-word}
+.revs{margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.rv{background:var(--field);border-radius:10px;padding:6px 10px}
+.rv .who{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub)}
+.rv .rev{margin:2px 0 0}
 .memoWhen{font-size:12px;color:var(--sub);margin:8px 0 0}
 
-.doneToggle{border:0;background:none;color:var(--sub);font-size:14px;padding:14px 4px 8px}
 .foot{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:28px;font-size:13px}
-.foot button{border:0;background:none;color:var(--sub);text-decoration:underline}
-.usage{width:100%;text-align:center;color:var(--sub);font-size:12px;margin-top:8px}
+.foot button{border:0;background:none;color:var(--sub);text-decoration:underline;padding:6px 2px}
+.usage{width:100%;text-align:center;color:var(--sub);font-size:12px;margin-top:4px}
 
-/* composer */
-.composer{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);
-  padding:8px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+/* 入力バー */
+.composer{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-radius:22px 22px 0 0;box-shadow:var(--shadow-up);
+  padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
 .composer .in{max-width:560px;margin:0 auto;padding:0 12px}
-.composer .scroller{margin:0 -12px 6px;padding:4px 12px}
-.cat{flex:none;border:0;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;background:var(--bg);white-space:nowrap}
-.cat[aria-pressed="true"]{background:var(--c);color:#1F2535}
-.cat.plus{background:none;border:2px dashed var(--line);color:var(--sub);padding:4px 12px}
-.pending{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;color:var(--sub)}
+.composer .scroller{margin:0 -12px 8px;padding:4px 12px}
+.cat{flex:none;border:0;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500;background:var(--field);white-space:nowrap;min-height:36px}
+.cat[aria-pressed="true"]{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 70%,#fff),var(--c));color:var(--fg,#fff);font-weight:700}
+.cat.plus{background:none;border:2px dashed var(--line);color:var(--sub);padding:5px 12px}
+.pending{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:var(--sub)}
 .pending img{width:40px;height:40px;border-radius:8px;object-fit:cover}
 .pending button{border:0;background:none;color:var(--danger);font-size:13px;margin-left:auto}
 .row{display:flex;gap:8px}
-.row input{flex:1;min-width:0;border:2px solid var(--line);background:var(--bg);border-radius:14px;padding:11px 14px;font-size:16px}
+.row input{flex:1;min-width:0;border:2px solid transparent;background:var(--field);border-radius:14px;padding:11px 14px;font-size:16px}
 .row input:focus{border-color:var(--ink);outline:none}
-.icon{flex:none;width:46px;border:2px solid var(--line);border-radius:14px;background:var(--bg);display:grid;place-items:center;color:var(--sub)}
-.icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.icon.on{border-color:var(--ink);color:var(--ink)}
-.add{flex:none;border:0;border-radius:14px;background:var(--ink);color:var(--paper);padding:0 18px;font-weight:700}
-.add:disabled{opacity:.35}
+.icon{flex:none;width:48px;min-height:48px;border:0;border-radius:14px;background:var(--field);display:grid;place-items:center;color:var(--sub)}
+.icon svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icon.on{color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.add{flex:none;width:48px;min-height:48px;border:0;border-radius:14px;background:var(--ink);color:var(--paper);display:grid;place-items:center}
+.add svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+.add:disabled{opacity:.3}
 
-/* sheets */
-.scrim{position:fixed;inset:0;background:rgba(15,18,28,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+/* シート */
+.scrim{position:fixed;inset:0;background:rgba(30,22,12,.42);display:none;align-items:flex-end;justify-content:center;z-index:10}
 .scrim.open{display:flex}
-.sheet{background:var(--paper);width:100%;max-width:560px;max-height:88%;overflow-y:auto;border-radius:20px 20px 0 0;
-  padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
+.sheet{background:var(--paper);width:100%;max-width:560px;max-height:90%;overflow-y:auto;border-radius:22px 22px 0 0;
+  padding:8px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out;overscroll-behavior:contain}
 @keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
-.sheet h2{font-size:17px;margin:0 0 12px}
-.sheet label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
-.sheet input[type=text],.sheet input[type=url],.sheet textarea{width:100%;border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:16px}
+.grab{display:block;width:100%;padding:6px 0 10px;border:0;background:none}
+.grab::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
+.sheet h2{font-size:18px;margin:0 0 12px}
+.sheet label{display:block;font-size:13px;color:var(--sub);margin:14px 0 4px}
+.sheet input[type=text],.sheet input[type=url],.sheet textarea{width:100%;border:2px solid transparent;background:var(--field);border-radius:12px;padding:10px 12px;font-size:16px}
+.sheet input:focus,.sheet textarea:focus{border-color:var(--ink);outline:none}
 .sheet textarea{min-height:72px;resize:vertical}
 .sheet .scroller{margin:0 -16px}
 .urlrow{display:flex;gap:8px}
-.urlrow .open{flex:none;border:0;border-radius:12px;background:var(--bg);color:var(--linkc);padding:0 16px;font-weight:700;text-decoration:none;display:grid;place-items:center}
+.urlrow .open{flex:none;border:0;border-radius:12px;background:var(--field);color:var(--linkc);padding:0 16px;font-weight:700;text-decoration:none;display:grid;place-items:center}
 .urlrow .open[aria-disabled="true"]{opacity:.35;pointer-events:none}
+.byline{font-size:12px;color:var(--sub);margin:-6px 0 6px}
 
 /* 写真（複数） */
 .shelf{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:8px 2px 2px}
 .shelf::-webkit-scrollbar{display:none}
 .slot{flex:none;position:relative;width:84px;height:84px}
-.slot img{width:100%;height:100%;object-fit:cover;border-radius:12px;background:var(--bg);display:block}
-.slot .drop{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:2px solid var(--paper);
+.slot img{width:100%;height:100%;object-fit:cover;border-radius:12px;background:var(--field);display:block}
+.slot .drop{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:2px solid var(--paper);
   background:var(--danger);color:#fff;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
 .slot.plus{border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;color:var(--sub);background:none;font-size:22px}
 
 /* やったときの記録 */
-.doneRow{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:16px}
-.doneRow span{flex:1;font-size:14px}
+.doneRow{display:flex;align-items:center;gap:10px;background:var(--field);border-radius:12px;padding:10px 12px;margin-top:16px}
+.doneRow span{flex:1;font-size:15px;font-weight:700}
 .sw2{flex:none;width:52px;height:30px;border-radius:999px;border:0;background:var(--line);position:relative;transition:background .15s}
-.sw2::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--paper);transition:transform .15s}
+.sw2::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .sw2[aria-pressed="true"]{background:var(--gold)}
 .sw2[aria-pressed="true"]::after{transform:translateX(22px)}
 .rate{display:flex;gap:4px}
-.rate button{border:0;background:none;font-size:28px;line-height:1;padding:0 2px;color:var(--line)}
+.rate button{border:0;background:none;font-size:30px;line-height:1;padding:0 2px;color:var(--line);min-width:36px;min-height:40px}
 .rate button.on{color:var(--gold)}
 .rateClear{border:0;background:none;color:var(--sub);font-size:13px;margin-left:auto;text-decoration:underline}
 .rateRow{display:flex;align-items:center}
 
 .when{font-size:13px;color:var(--sub);margin:14px 0 0}
 .acts{display:flex;gap:6px;margin-top:18px}
-.acts button{flex:1;border:0;border-radius:12px;padding:12px 6px;font-weight:700;font-size:15px}
-.share{background:var(--bg);color:var(--linkc)}
+.acts button{flex:1;border:0;border-radius:12px;padding:13px 6px;font-weight:700;font-size:15px;min-height:48px}
+.share{background:var(--field);color:var(--linkc)}
 .save{background:var(--ink);color:var(--paper)}
 .del{background:none!important;color:var(--danger);flex:none!important;padding:12px 8px!important}
-.cancel{background:var(--bg)}
+.del:disabled{opacity:.3}
+.cancel{background:var(--field)}
+.linkBtn{border:0;background:none;color:var(--linkc);font-size:14px;padding:10px 0 0;display:block}
 
-/* category manager */
+/* カテゴリ管理 */
 .crow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
 .crow input[type=text]{flex:1;min-width:0;padding:8px 10px!important}
-.dot{flex:none;width:30px;height:30px;border-radius:50%;border:3px solid var(--paper);box-shadow:0 0 0 2px var(--line);background:var(--c)}
+.dot{flex:none;width:32px;height:32px;border-radius:50%;border:3px solid var(--paper);box-shadow:0 0 0 2px var(--line);background:var(--c)}
 .cnum{flex:none;font-size:12px;color:var(--sub);width:36px;text-align:right}
 .x{flex:none;border:0;background:none;color:var(--danger);font-size:14px;padding:6px}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 4px}
-.sw{width:30px;height:30px;border-radius:50%;border:0;background:var(--c)}
+.sw{width:32px;height:32px;border-radius:50%;border:0;background:var(--c)}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
 .newcat{display:flex;gap:8px;margin-top:6px}
 .newcat button{flex:none;border:0;border-radius:12px;background:var(--ink);color:var(--paper);padding:0 16px;font-weight:700}
@@ -197,24 +233,60 @@ ul{list-style:none;margin:0;padding:0}
 .sub{font-size:14px;margin:18px 0 4px}
 .steps{margin:4px 0 10px;padding-left:1.3em;font-size:14px;color:var(--sub)}
 .steps li{margin:3px 0}
-code{background:var(--bg);border-radius:6px;padding:1px 5px;font-size:12px}
+code{background:var(--field);border-radius:6px;padding:1px 5px;font-size:12px}
 #recvUrl{font-size:13px}
 
-/* photo viewer */
-#viewScrim{align-items:center;background:rgba(10,12,18,.9)}
-#viewScrim img{max-width:94vw;max-height:82vh;border-radius:12px}
+/* 帳の切り替え（上から落ちてくる） */
+#nbScrim{align-items:flex-start}
+.drop{background:var(--paper);width:100%;max-width:560px;max-height:80%;overflow-y:auto;border-radius:0 0 22px 22px;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 12px 14px;animation:down .2s ease-out;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+@keyframes down{from{transform:translateY(-30px);opacity:.4}to{transform:none;opacity:1}}
+.dropSec{font-size:12px;color:var(--sub);margin:10px 6px 4px}
+.nbRow{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;border-radius:12px;padding:12px 10px;text-align:left;min-height:48px}
+.nbRow.on{background:var(--field)}
+.nbRow:disabled{opacity:.55}
+.nbRow .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbRow small{font-weight:400;color:var(--sub);font-size:12px}
+.nbRow .ck{color:var(--linkc);font-weight:700}
+.badge{flex:none;font-size:11px;font-weight:700;color:#fff;background:var(--danger);border-radius:999px;padding:2px 8px}
+.badge.soft{background:var(--field);color:var(--sub)}
+.dropAct{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;border-radius:12px;padding:12px 10px;color:var(--linkc);font-weight:700;text-align:left;min-height:48px}
+.dropNote{font-size:12px;color:var(--sub);margin:2px 10px 6px}
+hr.sep{border:0;border-top:1px solid var(--line);margin:8px 6px}
+
+/* 設定・メンバー */
+.setRow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);min-height:52px}
+.setRow .lb{flex:1;min-width:0}
+.setRow .lb small{display:block;color:var(--sub);font-size:12px}
+.pill{flex:none;border:0;border-radius:10px;background:var(--field);padding:8px 12px;font-size:14px;font-weight:700;color:var(--linkc)}
+.pill.danger{color:var(--danger)}
+.pill.solid{background:var(--ink);color:var(--paper)}
+.danger{color:var(--danger)}
+.plan{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.plan button{display:flex;align-items:center;justify-content:space-between;border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:14px 16px;font-weight:700;min-height:56px}
+.plan button small{color:var(--sub);font-weight:400}
+.perks{margin:8px 0 0;padding:0;list-style:none}
+.perks li{padding:4px 0 4px 26px;position:relative;font-size:15px}
+.perks li::before{content:"✓";position:absolute;left:4px;color:var(--gold);font-weight:700}
+.fine{font-size:11px;color:var(--sub);margin:12px 0 0;line-height:1.6}
+.fine a{color:var(--linkc)}
+
+/* 写真ビューア */
+#viewScrim{align-items:center;background:rgba(10,8,6,.92)}
+#viewScrim img{max-width:94vw;max-height:84vh;border-radius:12px}
 
 .toast{position:fixed;left:50%;bottom:var(--toast-b,calc(180px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%);
-  background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;display:none;z-index:30;
-  align-items:center;gap:12px;max-width:92vw}
+  background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;display:none;z-index:30;
+  align-items:center;gap:14px;max-width:92vw;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 body.album .toast{bottom:40px}
-.toast.show{display:flex}
+.toast.show{display:flex;animation:fade .2s ease-out}
+@keyframes fade{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 .toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.toast button{border:0;background:none;color:#F3C94B;font-weight:700;padding:0;white-space:nowrap}
+.toast button{border:0;background:none;color:#F3C94B;font-weight:700;padding:4px 0;white-space:nowrap}
 
 /* 写真の取り込み元（アプリのみ） */
 .pick{display:flex;flex-direction:column;gap:8px}
-.pick button{border:0;border-radius:12px;background:var(--bg);padding:14px;font-size:16px;font-weight:700;text-align:left;display:flex;align-items:center;gap:12px}
+.pick button{border:0;border-radius:12px;background:var(--field);padding:14px;font-size:16px;font-weight:700;text-align:left;display:flex;align-items:center;gap:12px}
 .pick svg{width:22px;height:22px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--sub)}
 
 /* アプリでは Web ページらしい長押しメニューと文字選択を出さない */
@@ -229,9 +301,21 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
 <div class="wrap">
   <header>
     <button class="back" id="backBtn" hidden aria-label="いつか帳に戻る">←</button>
-    <h1 id="title">いつか帳</h1>
-    <input class="search" id="q" type="search" placeholder="さがす" aria-label="メモを検索">
+    <button class="nbBtn" id="nbBtn" aria-haspopup="dialog" aria-label="帳を切り替える">
+      <h1 id="title">いつか帳</h1>
+      <svg class="i caret" id="caret" viewBox="0 0 24 24" hidden><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <span class="dots" id="memberDots"></span>
+    <span class="syncBadge" id="syncBadge" hidden>未送信</span>
+    <span class="spacer"></span>
+    <button class="iconBtn" id="searchBtn" aria-label="さがす">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+    </button>
   </header>
+  <div class="searchRow" id="searchRow" hidden>
+    <input class="search" id="q" type="search" placeholder="本文・メモ・感想・URLからさがす" aria-label="メモを検索">
+    <button id="searchClose" type="button">閉じる</button>
+  </div>
 
   <nav class="tabs scroller" id="tabs" aria-label="絞り込み"></nav>
 
@@ -249,6 +333,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     <button id="recvBtn">共有から追加</button>
     <button id="exportBtn">書き出す</button>
     <button id="importBtn">読み込む</button>
+    <button id="settingsBtn">設定</button>
     <div class="usage" id="usage"></div>
   </div>
 </div>
@@ -262,21 +347,25 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
       <button id="pendingRm" type="button">取り消す</button>
     </div>
     <form class="row" id="form" onsubmit="return false">
-      <input id="text" type="text" enterkeyhint="done" autocomplete="off" aria-label="メモを入力">
       <button class="icon" id="photoBtn" type="button" aria-label="写真を添付">
         <svg viewBox="0 0 24 24"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7l1.2-1.8h6.2L15.8 6h2.7A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
       </button>
-      <button class="add" id="addBtn" type="submit" disabled>追加</button>
+      <input id="text" type="text" enterkeyhint="done" autocomplete="off" aria-label="メモを入力">
+      <button class="add" id="addBtn" type="submit" disabled aria-label="追加">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
     </form>
     <input type="file" id="fileAdd" accept="image/*" hidden>
     <input type="file" id="fileEdit" accept="image/*" multiple hidden>
   </div>
 </div>
 
-<!-- item edit -->
+<!-- メモ編集シート -->
 <div class="scrim" id="editScrim">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
     <h2 id="editTitle">メモを編集</h2>
+    <p class="byline" id="editBy" hidden></p>
     <div class="scroller" id="editCats"></div>
     <label for="editText">内容</label>
     <input id="editText" type="text">
@@ -285,13 +374,13 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
       <input id="editUrl" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://">
       <a class="open" id="editOpen" target="_blank" rel="noopener" aria-disabled="true">開く</a>
     </div>
-    <label>写真</label>
+    <label>写真（8枚まで）</label>
     <div class="shelf" id="editShelf"></div>
     <label for="editNote">メモ</label>
     <textarea id="editNote" placeholder="値段、配信サービス、住所、材料、誰に聞いたか など"></textarea>
 
     <div class="doneRow">
-      <span>やった</span>
+      <span>やった！</span>
       <button type="button" class="sw2" id="doneSw" aria-pressed="false" aria-label="やったことにする"></button>
     </div>
     <div id="recordBox" hidden>
@@ -300,11 +389,16 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
         <div class="rate" id="editRate" role="group" aria-label="評価"></div>
         <button type="button" class="rateClear" id="rateClear">消す</button>
       </div>
-      <label for="editReview">感想</label>
+      <label for="editReview" id="reviewLabel">感想</label>
       <textarea id="editReview" placeholder="どうだった？ また行きたい？ 誰と行った？"></textarea>
+      <div id="othersBox" hidden>
+        <label>みんなの感想</label>
+        <div class="revs" id="othersRevs"></div>
+      </div>
     </div>
 
     <p class="when" id="editWhen"></p>
+    <button class="linkBtn" id="moveBtn" type="button" hidden>別の帳に移す</button>
     <div class="acts">
       <button class="del" id="delBtn">削除</button>
       <button class="cancel" data-close>閉じる</button>
@@ -317,7 +411,9 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
 <!-- 受け取り（共有シート・ショートカットから） -->
 <div class="scrim" id="addScrim">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <button class="grab" type="button" aria-label="やめる" data-close></button>
     <h2 id="addTitle">受け取ったページを追加</h2>
+    <p class="byline" id="addWhere"></p>
     <div class="scroller" id="addCats"></div>
     <label for="addText">内容</label>
     <input id="addText" type="text">
@@ -334,9 +430,10 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   </div>
 </div>
 
-<!-- category manager -->
+<!-- カテゴリ管理 -->
 <div class="scrim" id="catScrim">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="catTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
     <h2 id="catTitle">カテゴリ</h2>
     <div id="catRows"></div>
     <label for="newName">新しいカテゴリ</label>
@@ -350,12 +447,12 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   </div>
 </div>
 
-<!-- 共有から追加する設定 -->
+<!-- 共有から追加する設定（Web版のみ） -->
 <div class="scrim" id="recvScrim">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
     <h2 id="recvTitle">ほかのアプリから追加する</h2>
     <p class="help">Safariで見ているページを、このアプリに送って登録できます。</p>
-
     <h3 class="sub">iPhone（ショートカットを1つ作る）</h3>
     <ol class="steps">
       <li>ショートカットApp →「＋」で新規作成</li>
@@ -368,13 +465,10 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
       <input id="recvUrl" type="text" readonly>
       <button class="open" id="recvCopy" type="button">コピー</button>
     </div>
-
     <h3 class="sub">Android</h3>
     <p class="help">Chromeで「アプリをインストール」しておくと、共有メニューに「いつか帳」が出ます。そのまま選べば追加できます。</p>
-
     <h3 class="sub">カテゴリを決めて送る</h3>
     <p class="help">上のアドレスの末尾に <code>&amp;cat=行きたい</code> のようにカテゴリ名を足すと、そのカテゴリが最初から選ばれます。</p>
-
     <div class="acts"><button class="save" data-close>閉じる</button></div>
   </div>
 </div>
@@ -382,6 +476,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
 <!-- 書き出し -->
 <div class="scrim" id="backupScrim">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="backupTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
     <h2 id="backupTitle">書き出し</h2>
     <p class="help" id="backupHelp"></p>
     <p class="help">書き出したファイルは「読み込む」で戻せます。写真もふくみます。</p>
@@ -392,10 +487,153 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   </div>
 </div>
 
+<!-- 設定 -->
+<div class="scrim" id="setScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
+    <h2 id="setTitle">設定</h2>
+    <div id="setAccount" hidden>
+      <div class="setRow">
+        <span class="lb">表示名<small>共有帳でほかのメンバーに見える名前</small></span>
+        <button class="pill" id="setName" type="button"></button>
+      </div>
+      <div class="setRow">
+        <span class="lb">いつか帳プラス<small id="setPlanSub"></small></span>
+        <button class="pill" id="setPlan" type="button"></button>
+      </div>
+    </div>
+    <div class="setRow" id="setWifiRow" hidden>
+      <span class="lb">写真の送信はWi-Fiのときだけ<small>共有帳の写真。モバイル通信では送らずに待ちます</small></span>
+      <button type="button" class="sw2" id="setWifi" aria-pressed="false" aria-label="写真の送信をWi-Fiのときだけにする"></button>
+    </div>
+    <div class="setRow" id="setAffRow" hidden>
+      <span class="lb">商品リンクにアフィリエイトを付ける<small>「欲しい」のAmazon・楽天・Yahoo!ショッピングのリンクには、アプリの運営を支えるアフィリエイトリンクを含みます。付けるのは端末の中だけで、どのリンクを開いたかは送りません</small></span>
+      <button type="button" class="sw2" id="setAff" aria-pressed="true" aria-label="アフィリエイトリンクを付ける"></button>
+    </div>
+    <div id="setAuth" hidden>
+      <div class="setRow">
+        <span class="lb">サインアウト<small>個人用の帳はこの端末に残ります</small></span>
+        <button class="pill" id="setOut" type="button">サインアウト</button>
+      </div>
+      <div class="setRow">
+        <span class="lb">アカウントを削除<small>作った共有帳と写真を消します。ほかの帳に書いたメモは「退会したメンバー」として残ります</small></span>
+        <button class="pill danger" id="setDelete" type="button">削除</button>
+      </div>
+    </div>
+    <p class="fine"><a id="setTerms" target="_blank" rel="noopener">利用規約</a>　<a id="setPrivacy" target="_blank" rel="noopener">プライバシーポリシー</a></p>
+    <div class="acts"><button class="save" data-close>閉じる</button></div>
+  </div>
+</div>
+
+<!-- いつか帳プラス -->
+<div class="scrim" id="plusScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="plusTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
+    <h2 id="plusTitle">いつか帳プラス</h2>
+    <p class="help" style="font-size:14px;color:var(--ink)">共有帳をつくって、家族や友だちと一緒に「いつか」を集められます。</p>
+    <ul class="perks">
+      <li>共有帳を何冊でもつくれる</li>
+      <li>メモ・写真・感想をメンバーで共有</li>
+      <li>招待した人は無料で参加できる</li>
+      <li>個人用の帳はこれまでどおり無料で制限なし</li>
+    </ul>
+    <div class="plan" id="plusPlans"><p class="help">読み込んでいます…</p></div>
+    <button class="linkBtn" id="plusRestore" type="button">購入を復元</button>
+    <p class="fine">お支払いは購入の確定時に Apple ID に請求されます。サブスクリプションは、期間終了の24時間前までに解約しない限り自動で更新されます。解約は「設定」アプリ → 自分の名前 →「サブスクリプション」からできます。<br>
+      <a id="plusTerms" target="_blank" rel="noopener">利用規約</a>　<a id="plusPrivacy" target="_blank" rel="noopener">プライバシーポリシー</a></p>
+  </div>
+</div>
+
+<!-- 表示名 -->
+<div class="scrim" id="nameScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+    <h2 id="nameTitle">表示名を決める</h2>
+    <p class="help">共有帳で、ほかのメンバーに見える名前です。あとから設定で変えられます。</p>
+    <label for="nameInput">表示名</label>
+    <input id="nameInput" type="text" maxlength="20" placeholder="例：あきお">
+    <div class="acts">
+      <button class="cancel" id="nameSkip" type="button">あとで</button>
+      <button class="save" id="nameOk" type="button">決める</button>
+    </div>
+  </div>
+</div>
+
+<!-- 共有帳をつくる -->
+<div class="scrim" id="newNbScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="newNbTitle">
+    <button class="grab" type="button" aria-label="やめる" data-close></button>
+    <h2 id="newNbTitle">共有帳をつくる</h2>
+    <label for="newNbName">帳の名前</label>
+    <input id="newNbName" type="text" maxlength="40" placeholder="例：夫婦のやりたいこと、行きたいカフェリスト">
+    <p class="help">つくったあと、帳の設定から招待リンクを送れます。</p>
+    <div class="acts">
+      <button class="cancel" data-close>やめる</button>
+      <button class="save" id="newNbOk" type="button" disabled>つくる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 招待リンクで参加 -->
+<div class="scrim" id="joinScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <button class="grab" type="button" aria-label="やめる" data-close></button>
+    <h2 id="joinTitle">招待リンクで参加</h2>
+    <label for="joinInput">招待リンク</label>
+    <input id="joinInput" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://…/join.html?t=…">
+    <p class="help">参加を申請すると、帳をつくった人が承認したあとに中身が見えるようになります。</p>
+    <div class="acts">
+      <button class="cancel" data-close>やめる</button>
+      <button class="save" id="joinOk" type="button">参加を申請</button>
+    </div>
+  </div>
+</div>
+
+<!-- 帳の設定 -->
+<div class="scrim" id="nbSetScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="nbSetTitle">
+    <button class="grab" type="button" aria-label="閉じる" data-close></button>
+    <h2 id="nbSetTitle">帳の設定</h2>
+    <div id="nbSetOwner" hidden>
+      <label for="nbSetName">帳の名前</label>
+      <div class="urlrow">
+        <input id="nbSetName" type="text" maxlength="40">
+        <button class="open" id="nbSetRename" type="button">変更</button>
+      </div>
+      <div class="setRow">
+        <span class="lb">招待リンクを送る<small>7日間有効・5人まで。リンクだけでは中身は見えず、あなたが承認して参加になります</small></span>
+        <button class="pill solid" id="nbInvite" type="button">送る</button>
+      </div>
+    </div>
+    <label>メンバー</label>
+    <div id="nbMembers"><p class="help">読み込んでいます…</p></div>
+    <div class="setRow">
+      <span class="lb" id="nbEndLabel"></span>
+      <button class="pill danger" id="nbEnd" type="button"></button>
+    </div>
+    <div class="acts"><button class="save" data-close>閉じる</button></div>
+  </div>
+</div>
+
+<!-- 別の帳に移す -->
+<div class="scrim" id="moveScrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="moveTitle">
+    <button class="grab" type="button" aria-label="やめる" data-close></button>
+    <h2 id="moveTitle">別の帳に移す</h2>
+    <p class="help">写真と自分の評価・感想も一緒に移ります。</p>
+    <div id="moveList"></div>
+    <div class="acts"><button class="cancel" data-close>やめる</button></div>
+  </div>
+</div>
+
+<!-- 帳の切り替え -->
+<div class="scrim" id="nbScrim">
+  <div class="drop" role="dialog" aria-modal="true" aria-label="帳を切り替える" id="nbDrop"></div>
+</div>
+
 <!-- 写真の取り込み元（アプリのみ） -->
 <div class="scrim" id="srcScrim">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="srcTitle">
-    <h2 id="srcTitle">写真を添える</h2>
+    <h2 id="srcTitle" style="margin-top:10px">写真を添える</h2>
     <div class="pick">
       <button type="button" data-src="camera">
         <svg viewBox="0 0 24 24"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7l1.2-1.8h6.2L15.8 6h2.7A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
@@ -410,7 +648,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
 
 <div class="scrim" id="viewScrim"><img id="viewImg" alt="写真"></div>
 
-<div class="toast" id="toast">
+<div class="toast" id="toast" role="status">
   <span id="toastMsg"></span>
   <button id="toastAct" hidden></button>
   <button id="undoBtn">元に戻す</button>
@@ -418,16 +656,20 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
 
 <script>
 (() => {
-  const KEY = 'itsuka-v1';
-  const COLORS = ['#F3C94B','#7DB7F0','#7FCB9B','#F29E7A','#B79AE8','#EE9BC0','#6CCCC6','#C9B48F','#B8BEC9'];
+  const KEY = 'itsuka-v1', K_NB = 'itsuka-current-nb', K_AFF = 'itsuka-affiliate', K_SEENPEND = 'itsuka-seen-pending';
+  const COLORS = ['#F2545B','#F5934A','#3DBE7A','#3FA2EA','#F2C230','#9B7BE0','#EE7FB0','#2EC4B6','#A89A86'];
   const DEFAULT_CATS = [
-    { id:'want',  name:'欲しい',   color:'#F3C94B', hint:'なにが欲しい？' },
-    { id:'watch', name:'観たい',   color:'#7DB7F0', hint:'なにを観たい？' },
-    { id:'go',    name:'行きたい', color:'#7FCB9B', hint:'どこに行きたい？' },
-    { id:'eat',   name:'食べたい', color:'#F29E7A', hint:'なにを食べたい？' },
-    { id:'make',  name:'作りたい', color:'#B79AE8', hint:'なにを作りたい？' },
+    { id:'want',  name:'欲しい',   color:'#F2545B', hint:'なにが欲しい？' },
+    { id:'watch', name:'観たい',   color:'#F5934A', hint:'なにを観たい？' },
+    { id:'go',    name:'行きたい', color:'#3DBE7A', hint:'どこに行きたい？' },
+    { id:'eat',   name:'食べたい', color:'#3FA2EA', hint:'なにを食べたい？' },
+    { id:'make',  name:'作りたい', color:'#F2C230', hint:'なにを作りたい？' },
   ];
+  // 旧版の初期色（そのまま使っている人は新しい色に置き換える）
+  const OLD_COLORS = { want:'#F3C94B', watch:'#7DB7F0', go:'#7FCB9B', eat:'#F29E7A', make:'#B79AE8' };
+  const EN = { want:'WANT', watch:'WATCH', go:'GO', eat:'EAT', make:'MAKE' };
   const MAX_EDGE = 1400, JPEG_Q = 0.75, MAX_PHOTOS = 8;
+  const CFG = window.ITSUKA_CONFIG || {};
   const $ = id => document.getElementById(id);
 
   /* ---------- iOSアプリのときだけ使うネイティブ機能 ---------- */
@@ -437,7 +679,9 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     ? ['Camera','Haptics','Share','Filesystem','App','TextZoom','ShareInbox']
         .reduce((o, n) => (o[n] = Cap.registerPlugin(n), o), {})
     : null;
+  const Cloud = window.ItsukaCloud || null;     // 共有帳（設定があるアプリのときだけ）
   const haptic = () => { if (NATIVE) P.Haptics.impact({ style:'LIGHT' }).catch(() => {}); };
+  const hapticWarn = () => { if (NATIVE) P.Haptics.notification({ type:'WARNING' }).catch(() => {}); };
   const isCancel = err => /cancel/i.test(String(err && (err.message || err.code || err) || ''));
 
   const store = {
@@ -445,23 +689,67 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
   };
 
-  let items = store.get(KEY, []); if (!Array.isArray(items)) items = [];
-  let cats = store.get(KEY+':cats', null);
-  if (!Array.isArray(cats) || !cats.length) cats = DEFAULT_CATS.map(c => ({...c}));
+  /* ---------- 帳（個人用 'personal' か、共有帳の id） ---------- */
+  let nb = store.get(K_NB, 'personal');
+  let items = [], cats = [], addCat = null;
   let view = 'list';
   let filter = 'all';
-  let addCat = store.get(KEY+':addcat', null);
   let editingId = null, editCat = null, editPhotos = [], editDone = false, editRate = 0, lastAddedId = null;
   let pendingBlob = null, pendingUrl = null, newColor = COLORS[5], undoSnap = null, toastTimer = null;
+  const shared = () => nb !== 'personal';
 
   const catOf = id => cats.find(c => c.id === id) || cats[0];
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const newId = () => shared() && window.crypto && crypto.randomUUID ? crypto.randomUUID() : uid();
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const urlIn = s => (s.match(/https?:\/\/[^\s]+/) || [])[0];
   const hintOf = c => c.hint || `「${c.name}」を書く`;
-  const cc = c => `data-cc style="--c:${c.color}"`;
   const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '';
   const host = u => { try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return 'リンク'; } };
+  // 明るい色（黄色など）の上は濃い文字、それ以外は白
+  function fgOn(hex){
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return '#fff';
+    const n = parseInt(m[1], 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.72 ? '#3A2E00' : '#fff';
+  }
+  const cc = c => `data-cc style="--c:${c.color};--fg:${fgOn(c.color)}"`;
+  const enOf = c => EN[c.id] && DEFAULT_CATS.some(d => d.id === c.id && d.name === c.name) ? EN[c.id] : '';
+
+  function normalize(){
+    if (!Array.isArray(items)) items = [];
+    if (!Array.isArray(cats) || !cats.length) cats = DEFAULT_CATS.map(c => ({...c}));
+    let changed = false;
+    cats.forEach(c => { if (OLD_COLORS[c.id] && c.color === OLD_COLORS[c.id]){ c.color = DEFAULT_CATS.find(d => d.id === c.id).color; changed = true; } });
+    items.forEach(it => {
+      if (!cats.some(c => c.id === it.cat)){ it.cat = cats[0].id; changed = true; }
+      if (it.url === undefined){
+        const u = urlIn(it.note || '');
+        if (u){ it.url = u; it.note = (it.note || '').replace(u,'').trim(); } else it.url = '';
+        changed = true;
+      }
+      if (!Array.isArray(it.photos)){ it.photos = []; changed = true; }
+      if (typeof it.rating !== 'number'){ it.rating = 0; changed = true; }
+      if (typeof it.review !== 'string'){ it.review = ''; changed = true; }
+    });
+    if (!cats.some(c => c.id === addCat)) addCat = cats[0].id;
+    return changed;
+  }
+  function loadData(){
+    if (shared()){
+      const d = Cloud.load(nb);
+      items = d.items; cats = d.cats.length ? d.cats : DEFAULT_CATS.map(c => ({...c})); addCat = d.addcat;
+      normalize();
+      return false;
+    }
+    items = store.get(KEY, []); cats = store.get(KEY+':cats', null); addCat = store.get(KEY+':addcat', null);
+    return normalize();
+  }
+  // 共有帳を開いていたのに、その帳から外れていた（またはアプリが共有に対応していない）ときは個人用に戻す
+  if (nb !== 'personal'){
+    const n = Cloud && Cloud.info(nb);
+    if (!n || n.status !== 'active') nb = 'personal';
+  }
+  const migrated = loadData();
 
   /* ---------- 写真の保管庫（IndexedDB） ---------- */
   const DBN = 'itsuka', SHELF = 'photos';
@@ -488,11 +776,23 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   const getPhoto = id => tx('readonly', s => s.get(id));
   const dropPhoto = id => tx('readwrite', s => s.delete(id));
 
+  // 写真の本体。端末に無ければ（共有帳でほかの人が足したもの）取りにいって端末に残す
+  async function photoBlob(pid, inNb, itemId){
+    let blob = null;
+    try{ blob = await getPhoto(pid); }catch(e){}
+    if (blob) return blob;
+    const where = inNb || nb;
+    if (!Cloud || where === 'personal') return null;
+    const owner = itemId || (items.find(it => it.photos.includes(pid)) || {}).id;
+    if (!owner) return null;
+    blob = await Cloud.fetchPhoto(where, owner, pid).catch(() => null);
+    if (blob){ try{ await putPhoto(pid, blob); }catch(e){} }
+    return blob;
+  }
   const urlCache = new Map();
   async function photoUrl(id){
     if (urlCache.has(id)) return urlCache.get(id);
-    let blob = null;
-    try{ blob = await getPhoto(id); }catch(e){}
+    const blob = await photoBlob(id);
     if (!blob) return null;
     const u = URL.createObjectURL(blob);
     urlCache.set(id, u);
@@ -501,7 +801,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   // 画像は data-pid を置いてから、画面に近づいたものだけ後追いで差し込む
   async function fillImg(el){
     const u = await photoUrl(el.dataset.pid);
-    if (u) el.src = u; else el.remove();
+    if (u) el.src = u; else if (!shared()) el.remove();
   }
   const lazy = 'IntersectionObserver' in window
     ? new IntersectionObserver(entries => {
@@ -547,29 +847,25 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     return new Blob([u8], { type:mime });
   }
 
-  /* ---------- 既存データの手当て ---------- */
-  let migrated = false;
-  items.forEach(it => {
-    if (!cats.some(c => c.id === it.cat)){ it.cat = cats[0].id; migrated = true; }
-    if (it.url === undefined){
-      const u = urlIn(it.note || '');
-      if (u){ it.url = u; it.note = (it.note || '').replace(u,'').trim(); } else it.url = '';
-      migrated = true;
-    }
-    if (!Array.isArray(it.photos)){ it.photos = []; migrated = true; }
-    if (typeof it.rating !== 'number'){ it.rating = 0; migrated = true; }
-    if (typeof it.review !== 'string'){ it.review = ''; migrated = true; }
-  });
-  if (!cats.some(c => c.id === addCat)) addCat = cats[0].id;
-
+  /* ---------- 保存（帳ごとに行き先が変わる） ---------- */
   function saveItems(){
+    if (shared()){ Cloud.save(nb, items, cats); return true; }
     try{ store.set(KEY, items); return true; }
     catch(e){ toast('保存できませんでした。書き出してから整理してください', { undo:false }); return false; }
   }
-  const saveCats = () => { try{ store.set(KEY+':cats', cats); }catch(e){} };
+  function saveCats(){
+    if (shared()) return Cloud.save(nb, items, cats);
+    try{ store.set(KEY+':cats', cats); }catch(e){}
+  }
+  function setAddCat(id){
+    addCat = id;
+    if (shared()) Cloud.setAddCat(nb, id); else { try{ store.set(KEY+':addcat', id); }catch(e){} }
+    renderChrome();
+  }
 
   // 旧版の写真（本文に直接入っていたもの）を保管庫へ移す
   async function liftLegacy(){
+    if (shared()) return;
     const old = items.filter(it => typeof it.img === 'string' && it.img.startsWith('data:'));
     if (!old.length) return;
     for (const it of old){
@@ -585,7 +881,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     const same = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
     if (same(d,n)) return '今日';
     if (same(d, new Date(n.getTime() - 86400000))) return '昨日';
-    const md = (d.getMonth()+1) + '/' + d.getDate();
+    const md = (d.getMonth()+1) + '/' + String(d.getDate()).padStart(2,'0');
     return d.getFullYear() === n.getFullYear() ? md : d.getFullYear() + '/' + md;
   }
   function fmtFull(ts){
@@ -595,19 +891,42 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   function starsHTML(n){
     let s = '';
     for (let i = 1; i <= 5; i++) s += `<span class="${i <= n ? 'on' : ''}">★</span>`;
-    return `<span class="stars">${s}</span>`;
+    return `<span class="stars" aria-label="評価${n}">${s}</span>`;
+  }
+
+  /* ---------- アフィリエイト（「欲しい」の商品リンクだけ。端末の中で付ける） ---------- */
+  const AFF = CFG.affiliate || {};
+  const affConfigured = !!(AFF.amazonTag || AFF.rakutenId || (AFF.valuecommerceSid && AFF.valuecommercePid));
+  const affOn = () => affConfigured && store.get(K_AFF, true);
+  function linkFor(it){
+    const u = safeUrl(it.url);
+    if (!u || !affOn()) return u;
+    const c = catOf(it.cat);
+    if (!(c.id === 'want' || c.name === '欲しい')) return u;
+    try{
+      const url = new URL(u), h = url.hostname.replace(/^www\./, '');
+      if (AFF.amazonTag && /(^|\.)amazon\.(co\.jp|com)$/.test(h)){ url.searchParams.set('tag', AFF.amazonTag); return url.href; }
+      if (AFF.rakutenId && /(^|\.)rakuten\.co\.jp$/.test(h) && !/afl\.rakuten/.test(h))
+        return `https://hb.afl.rakuten.co.jp/hgc/${encodeURIComponent(AFF.rakutenId)}/?pc=${encodeURIComponent(u)}&m=${encodeURIComponent(u)}`;
+      if (AFF.valuecommerceSid && AFF.valuecommercePid && /(^|\.)shopping\.yahoo\.co\.jp$/.test(h))
+        return `https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=${encodeURIComponent(AFF.valuecommerceSid)}&pid=${encodeURIComponent(AFF.valuecommercePid)}&vc_url=${encodeURIComponent(u)}`;
+    }catch(e){}
+    return u;
   }
 
   /* ---------- 一覧（いつか帳） ---------- */
+  const me = () => Cloud && Cloud.me();
+  const authorOf = it => shared() && it.author && it.author !== me() ? Cloud.authorName(it.author) : (shared() && it.author === null ? '退会したメンバー' : '');
   function rowHTML(it){
     const c = catOf(it.cat);
     const u = safeUrl(it.url);
     const note = it.note ? it.note.split('\n')[0] : '';
-    const meta = [ filter === 'all' ? c.name : null, fmtDate(it.created), u ? host(u) : null, note || null ].filter(Boolean).join('　');
-    return `<li class="item${it.id===lastAddedId?' new':''}" ${cc(c)} data-id="${it.id}">
-      ${it.photos[0] ? `<img class="thumb" data-pid="${it.photos[0]}" alt="" data-act="view">` : ''}
-      <button class="body" data-act="edit"><span class="t">${esc(it.text)}</span><span class="m">${esc(meta)}</span></button>
-      ${u ? `<a class="go" href="${esc(u)}" target="_blank" rel="noopener" data-act="link" aria-label="リンクを開く">
+    const meta = [ authorOf(it) || null, filter === 'all' ? c.name : null, u ? host(u) : null, note || null ].filter(Boolean).join('　');
+    return `<li class="item${it.id===lastAddedId?' new':''}" ${cc(c)} data-id="${esc(it.id)}">
+      ${it.photos[0] ? `<img class="thumb" data-pid="${esc(it.photos[0])}" alt="" data-act="view">` : ''}
+      <button class="body" data-act="edit"><span class="top"><span class="t">${esc(it.text)}</span><span class="d">${fmtDate(it.created)}</span></span>
+        ${meta ? `<span class="m">${esc(meta)}</span>` : ''}</button>
+      ${u ? `<a class="go" href="${esc(linkFor(it))}" target="_blank" rel="noopener" data-act="link" aria-label="リンクを開く">
         <svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-8.6 8.6"/><path d="M19 14v4.5A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6H11"/></svg></a>` : ''}
       <button class="chk" data-act="toggle" aria-label="やったことにする">
         <svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
@@ -615,43 +934,74 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   }
 
   /* ---------- やったこと（アルバム） ---------- */
+  function reviewsOf(it){
+    // 共有帳では評価と感想を書いた人ごとに並べる（平均は出さない）
+    const out = [];
+    if (it.rating || it.review) out.push({ name: shared() ? ((Cloud.profile() || {}).display_name || '自分') : '', rating: it.rating, review: it.review, mine: true });
+    for (const r of it.reviews || []) out.push({ name: Cloud ? Cloud.authorName(r.user) : '', rating: r.rating, review: r.review });
+    return out;
+  }
   function memoHTML(it){
     const c = catOf(it.cat);
     const shots = it.photos.length
       ? `<div class="shots${it.photos.length === 1 ? ' one' : ''}">` +
-        it.photos.map(p => `<img class="shot" data-pid="${p}" alt="" data-act="view" data-pid-view="${p}">`).join('') + '</div>'
+        it.photos.map(p => `<img class="shot" data-pid="${esc(p)}" alt="" data-act="view">`).join('') + '</div>'
       : '';
-    return `<li class="memo" ${cc(c)} data-id="${it.id}">
+    const revs = reviewsOf(it);
+    const many = shared() && revs.length;
+    return `<li class="memo" ${cc(c)} data-id="${esc(it.id)}">
       ${shots}
       <button class="memoBody" data-act="edit">
-        <span class="memoTop"><span class="chip">${esc(c.name)}</span>${it.rating ? starsHTML(it.rating) : ''}</span>
+        <span class="memoTop"><span class="chip">${esc(c.name)}</span>${!many && it.rating ? starsHTML(it.rating) : ''}</span>
         <h3>${esc(it.text)}</h3>
-        ${it.review ? `<p class="rev">${esc(it.review)}</p>` : ''}
-        <p class="memoWhen">${fmtFull(it.doneAt || it.created)}</p>
+        ${many ? `<span class="revs">${revs.map(r => `<span class="rv"><span class="who">${esc(r.name)}${r.rating ? starsHTML(r.rating) : ''}</span>
+            ${r.review ? `<span class="rev" style="display:block">${esc(r.review)}</span>` : ''}</span>`).join('')}</span>`
+          : it.review ? `<p class="rev">${esc(it.review)}</p>` : ''}
+        <p class="memoWhen">達成日：${fmtFull(it.doneAt || it.created)}</p>
       </button></li>`;
   }
 
+  function tabHTML(c, n, all){
+    const en = all ? 'ALL' : enOf(c);
+    const label = all ? 'すべて' : c.name;
+    return `<button class="tab${all ? ' all' : ''}" ${all ? '' : cc(c)} data-c="${all ? 'all' : esc(c.id)}" aria-pressed="${filter === (all ? 'all' : c.id)}" aria-label="${esc(label)} ${n}件">
+      ${en ? `<span class="en">${en}</span><span class="ja">${esc(label)}</span>` : `<span class="solo">${esc(label)}</span>`}
+      <span class="n">${n}</span></button>`;
+  }
   function renderChrome(){
     const pool = items.filter(it => view === 'album' ? it.done : !it.done);
-    $('tabs').innerHTML =
-      `<button class="tab all" data-c="all" aria-pressed="${filter==='all'}"><b>${pool.length}</b><span>すべて</span></button>` +
-      cats.map(c => `<button class="tab" ${cc(c)} data-c="${c.id}" aria-pressed="${filter===c.id}">
-        <b>${pool.filter(it => it.cat === c.id).length}</b><span>${esc(c.name)}</span></button>`).join('');
+    $('tabs').innerHTML = tabHTML(null, pool.length, true) +
+      cats.map(c => tabHTML(c, pool.filter(it => it.cat === c.id).length)).join('');
     $('cats').innerHTML = cats.map(c =>
-      `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${addCat===c.id}">${esc(c.name)}</button>`).join('') +
+      `<button class="cat" ${cc(c)} data-c="${esc(c.id)}" aria-pressed="${addCat===c.id}">${esc(c.name)}</button>`).join('') +
       `<button class="cat plus" data-plus aria-label="カテゴリを追加">＋</button>`;
     $('text').placeholder = hintOf(catOf(addCat));
+    renderHeader();
+  }
+  function hue(s){ let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+  function renderHeader(){
+    const info = shared() && Cloud ? Cloud.info(nb) : null;
+    $('title').textContent = view === 'album' ? 'やったこと' : info ? info.name : 'いつか帳';
+    $('backBtn').hidden = view !== 'album';
+    $('caret').toggleAttribute('hidden', !Cloud || view === 'album');
+    $('nbBtn').disabled = !Cloud || view === 'album';
+    const mem = shared() && Cloud ? Cloud.members() : [];
+    $('memberDots').hidden = !mem.length || view === 'album';
+    $('memberDots').innerHTML = mem.slice(0, 4).map(m =>
+      `<span style="--c:${hue(m.user_id)}" title="${esc(m.display_name)}">${esc((m.display_name || '?').slice(0, 1))}</span>`).join('');
+    const pend = shared() && Cloud ? Cloud.pending(nb) : 0;
+    $('syncBadge').hidden = !pend;
+    $('syncBadge').textContent = Cloud && !Cloud.online() ? '未送信・オフライン' : '未送信';
   }
 
   function render(){
     const q = $('q').value.trim().toLowerCase();
     const hit = it => (filter === 'all' || it.cat === filter) &&
       (!q || it.text.toLowerCase().includes(q) || (it.note||'').toLowerCase().includes(q)
-          || (it.review||'').toLowerCase().includes(q) || (it.url||'').toLowerCase().includes(q));
+          || (it.review||'').toLowerCase().includes(q) || (it.url||'').toLowerCase().includes(q)
+          || (it.reviews || []).some(r => (r.review || '').toLowerCase().includes(q)));
 
     document.body.classList.toggle('album', view === 'album');
-    $('backBtn').hidden = view !== 'album';
-    $('title').textContent = view === 'album' ? 'やったこと' : 'いつか帳';
     $('composer').hidden = view === 'album';
     $('foot').hidden = view === 'album';
 
@@ -671,11 +1021,11 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     const btn = $('albumBtn');
     btn.hidden = view === 'album' || !done.length;
     if (!btn.hidden){
-      const withRev = done.filter(it => it.rating || it.review).length;
-      $('albumLead').textContent = `やったこと（${done.length}）`;
-      $('albumSub').textContent = withRev ? `${withRev}件に感想があります` : '感想や写真を残せます';
-      const minis = done.filter(it => it.photos[0]).slice(0, 3);
-      $('albumMini').innerHTML = minis.map(it => `<img data-pid="${it.photos[0]}" alt="">`).join('');
+      const withRev = done.filter(it => it.rating || it.review || (it.reviews && it.reviews.length)).length;
+      $('albumLead').textContent = `🎉 やったこと（${done.length}件）`;
+      $('albumSub').textContent = withRev ? `感想あり：${withRev}件` : '感想や写真を残せます';
+      const minis = done.filter(it => it.photos[0]).sort((a,b) => (b.doneAt||0) - (a.doneAt||0)).slice(0, 3);
+      $('albumMini').innerHTML = minis.map(it => `<img data-pid="${esc(it.photos[0])}" alt="">`).join('');
     }
 
     renderChrome(); usage(); hydrate();
@@ -683,18 +1033,14 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   }
 
   function usage(){
-    let chars = 0;
-    try{ for (const k in localStorage) if (k.indexOf(KEY) === 0) chars += (localStorage.getItem(k) || '').length; }catch(e){}
     const n = items.reduce((a, it) => a + it.photos.length, 0);
     $('usage').textContent = n ? `メモ${items.length}件・写真${n}枚` : '';
   }
 
-  function setAddCat(id){ addCat = id; try{ store.set(KEY+':addcat', id); }catch(e){} renderChrome(); }
-
   async function add(){
     const raw = $('text').value.trim();
     if (!raw && !pendingBlob) return;
-    const it = { id:uid(), cat:addCat, text:raw, url:'', note:'', photos:[], done:false,
+    const it = { id:newId(), cat:addCat, text:raw, url:'', note:'', photos:[], done:false,
                  created:Date.now(), doneAt:null, rating:0, review:'' };
     const u = urlIn(raw);
     if (u){ it.url = u; it.text = raw.replace(u,'').trim() || host(u); }
@@ -716,9 +1062,10 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     if (opt.act){ a.hidden = false; a.textContent = opt.act.label; a.onclick = () => { $('toast').classList.remove('show'); opt.act.fn(); }; }
     else { a.hidden = true; a.onclick = null; }
     $('toast').classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 6000);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), opt.undo === false && !opt.act ? 3000 : 5000);
   }
-  const snapshot = () => { undoSnap = JSON.stringify({ items, cats }); };
+  const snapshot = () => { undoSnap = JSON.stringify({ nb, items, cats }); };
 
   function clearPending(){
     pendingBlob = null;
@@ -726,6 +1073,242 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     $('pending').hidden = true; $('photoBtn').classList.remove('on');
     $('fileAdd').value = ''; $('addBtn').disabled = !$('text').value.trim();
   }
+
+  /* ---------- 帳の切り替え ---------- */
+  function switchNotebook(id){
+    if (id === nb){ closeAll(); return; }
+    nb = id; store.set(K_NB, id);
+    undoSnap = null; filter = 'all'; view = 'list'; $('q').value = ''; showSearch(false);
+    urlCache.clear();
+    loadData(); closeAll(); render(); window.scrollTo(0, 0);
+    if (Cloud){ if (shared()) Cloud.open(nb); else Cloud.close(); }
+  }
+  function nbRowHTML(n){
+    const on = n.id === nb;
+    if (n.status === 'pending') return `<button class="nbRow" disabled><span>👥</span><span class="nm">${esc(n.name)}</span><span class="badge soft">承認待ち</span></button>`;
+    return `<button class="nbRow${on ? ' on' : ''}" data-nb="${esc(n.id)}"><span>👥</span>
+      <span class="nm">${esc(n.name)} <small>（${n.member_count}人）</small></span>
+      ${n.pending_count ? `<span class="badge">申請 ${n.pending_count}</span>` : ''}
+      ${n.unread && !on ? `<span class="badge">未読 ${n.unread}</span>` : ''}
+      ${on ? '<span class="ck">✓</span>' : ''}</button>`;
+  }
+  function paintDrop(){
+    const list = Cloud.notebooks();
+    $('nbDrop').innerHTML = `
+      <div class="dropSec">選択中の帳</div>
+      <button class="nbRow${nb === 'personal' ? ' on' : ''}" data-nb="personal"><span>📒</span>
+        <span class="nm">個人用の帳 <small>（端末内のみ）</small></span>${nb === 'personal' ? '<span class="ck">✓</span>' : ''}</button>
+      <hr class="sep">
+      <div class="dropSec">共有帳</div>
+      ${list.length ? list.map(nbRowHTML).join('') : '<p class="dropNote">家族や友だちと一緒に使える帳です。つくるには「いつか帳プラス」が必要です。招待された人は無料で参加できます。</p>'}
+      <hr class="sep">
+      <button class="dropAct" data-act="create">＋ 共有帳をつくる</button>
+      <button class="dropAct" data-act="join">🔗 招待リンクで参加</button>
+      ${shared() ? '<button class="dropAct" data-act="settings">⚙︎ この帳の設定</button>' : ''}`;
+  }
+  async function openDrop(){
+    paintDrop();
+    $('nbScrim').classList.add('open');
+    try{ if (await Cloud.signedIn()){ await Cloud.refreshNotebooks(); if ($('nbScrim').classList.contains('open')) paintDrop(); } }catch(e){}
+  }
+  $('nbBtn').addEventListener('click', () => { if (Cloud && view === 'list') openDrop(); });
+  $('nbDrop').addEventListener('click', e => {
+    const r = e.target.closest('[data-nb]');
+    if (r) return switchNotebook(r.dataset.nb);
+    const a = e.target.closest('[data-act]'); if (!a) return;
+    closeAll();
+    if (a.dataset.act === 'create') return startCreate();
+    if (a.dataset.act === 'join'){ $('joinInput').value = ''; $('joinScrim').classList.add('open'); return; }
+    if (a.dataset.act === 'settings') return openNbSettings();
+  });
+
+  /* ---------- 共有帳：つくる・参加する ---------- */
+  async function guard(fn, failMsg){
+    try{ return await fn(); }
+    catch(e){
+      console.warn(e);
+      if (isCancel(e)) return;
+      toast(failMsg || (Cloud && !Cloud.online() ? 'オフラインです。つながってからもう一度お試しください' : 'うまくいきませんでした。もう一度お試しください'), { undo:false });
+    }
+  }
+  async function startCreate(){
+    await guard(async () => {
+      if (!(await Cloud.ensureSignedIn())) return;
+      if (!Cloud.isPlus()){ await Cloud.refreshProfile(); }
+      if (!Cloud.isPlus()) return openPlus(() => startCreate());
+      $('newNbName').value = ''; $('newNbOk').disabled = true;
+      $('newNbScrim').classList.add('open');
+      setTimeout(() => $('newNbName').focus(), 80);
+    });
+  }
+  $('newNbName').addEventListener('input', e => $('newNbOk').disabled = !e.target.value.trim());
+  $('newNbOk').addEventListener('click', () => guard(async () => {
+    const name = $('newNbName').value.trim(); if (!name) return;
+    $('newNbOk').disabled = true;
+    try{
+      const id = await Cloud.createNotebook(name);
+      switchNotebook(id);
+      toast(`「${name}」をつくりました`, { undo:false, act:{ label:'招待する', fn: openNbSettings } });
+    }catch(e){
+      if (/plus required/i.test(e.message)){ closeAll(); return openPlus(() => startCreate()); }
+      throw e;
+    }finally{ $('newNbOk').disabled = false; }
+  }));
+
+  async function joinWith(link){
+    await guard(async () => {
+      if (!Cloud.tokenOf(link)) return toast('招待リンクが読み取れませんでした', { undo:false });
+      const r = await Cloud.join(link);
+      if (!r) return;
+      closeAll();
+      if (r.status === 'active') return switchNotebook(r.notebook_id);
+      toast(`「${r.name}」に参加を申請しました。承認されると見られます`, { undo:false });
+    }, '参加できませんでした。リンクの期限（7日）が切れていないか確かめてください');
+  }
+  $('joinOk').addEventListener('click', () => joinWith($('joinInput').value));
+
+  /* ---------- 帳の設定（メンバー・招待・削除） ---------- */
+  async function openNbSettings(){
+    if (!shared()) return;
+    const info = Cloud.info(nb) || { name:'', role:'member' };
+    const owner = info.role === 'owner';
+    $('nbSetTitle').textContent = `「${info.name}」の設定`;
+    $('nbSetOwner').hidden = !owner;
+    $('nbSetName').value = info.name;
+    $('nbEndLabel').innerHTML = owner ? '帳を削除<small>メモと写真がすべて消え、メンバーも見られなくなります</small>'
+                                      : 'この帳から抜ける<small>書いたメモは帳に残ります</small>';
+    $('nbEnd').textContent = owner ? '削除' : '抜ける';
+    $('nbSetScrim').classList.add('open');
+    paintMembers();
+  }
+  async function paintMembers(){
+    const owner = Cloud.isOwner(nb);
+    await guard(async () => {
+      const list = await Cloud.listMembers(nb);
+      $('nbMembers').innerHTML = list.map(m => `<div class="setRow" data-user="${esc(m.user_id)}">
+        <span class="lb">${esc(m.display_name)}${m.user_id === me() ? '（自分）' : ''}<small>${m.role === 'owner' ? '作成者' : m.status === 'pending' ? '承認待ち' : 'メンバー'}</small></span>
+        ${owner && m.status === 'pending' ? `<button class="pill" data-m="no">却下</button><button class="pill solid" data-m="yes">承認</button>` : ''}
+        ${owner && m.status === 'active' && m.role !== 'owner' ? `<button class="pill danger" data-m="out">外す</button>` : ''}
+      </div>`).join('') || '<p class="help">まだいません</p>';
+      renderHeader();
+    });
+  }
+  $('nbMembers').addEventListener('click', e => {
+    const b = e.target.closest('[data-m]'); if (!b) return;
+    const user = b.closest('[data-user]').dataset.user;
+    guard(async () => {
+      if (b.dataset.m === 'yes') await Cloud.decide(nb, user, true);
+      if (b.dataset.m === 'no') await Cloud.decide(nb, user, false);
+      if (b.dataset.m === 'out'){
+        if (!confirm('このメンバーを外しますか？ 書いたメモは帳に残ります。')) return;
+        await Cloud.removeMember(nb, user);
+      }
+      paintMembers();
+    });
+  });
+  $('nbSetRename').addEventListener('click', () => guard(async () => {
+    const name = $('nbSetName').value.trim(); if (!name) return;
+    await Cloud.renameNotebook(nb, name); renderHeader(); toast('帳の名前を変えました', { undo:false });
+  }));
+  $('nbInvite').addEventListener('click', () => guard(async () => {
+    const url = await Cloud.inviteLink(nb);
+    const name = (Cloud.info(nb) || {}).name || '';
+    const text = `いつか帳の共有帳「${name}」に招待します。リンクを開いて参加を申請してください（7日間有効）`;
+    try{ await P.Share.share({ title:`「${name}」への招待`, text, url, dialogTitle:'招待リンクを送る' }); }
+    catch(e){ if (!isCancel(e)) throw e; }
+  }));
+  $('nbEnd').addEventListener('click', () => guard(async () => {
+    const owner = Cloud.isOwner(nb), name = (Cloud.info(nb) || {}).name;
+    hapticWarn();
+    if (!confirm(owner ? `「${name}」を削除しますか？ メモと写真がすべて消え、元に戻せません。` : `「${name}」から抜けますか？`)) return;
+    if (owner) await Cloud.deleteNotebook(nb); else await Cloud.leave(nb);
+    switchNotebook('personal');
+    toast(owner ? `「${name}」を削除しました` : `「${name}」から抜けました`, { undo:false });
+  }));
+
+  /* ---------- いつか帳プラス ---------- */
+  let afterPlus = null;
+  async function openPlus(then){
+    afterPlus = then || null;
+    $('plusTerms').href = CFG.termsUrl || '#'; $('plusPrivacy').href = CFG.privacyUrl || '#';
+    $('plusPlans').innerHTML = '<p class="help">読み込んでいます…</p>';
+    $('plusScrim').classList.add('open');
+    try{
+      const list = await Cloud.products();
+      const per = p => p.unit === 'year' ? '年額' : p.unit === 'month' ? '月額' : '';
+      $('plusPlans').innerHTML = list.length ? list.map(p =>
+        `<button type="button" data-pid="${esc(p.id)}"><span>${per(p)} ${esc(p.price)}</span><small>${esc(p.title || '')}</small></button>`).join('')
+        : '<p class="help">いまは購入できません。しばらくしてからお試しください</p>';
+    }catch(e){ $('plusPlans').innerHTML = '<p class="help">商品を読み込めませんでした。通信を確かめてください</p>'; }
+  }
+  $('plusPlans').addEventListener('click', e => {
+    const b = e.target.closest('[data-pid]'); if (!b) return;
+    guard(async () => {
+      b.disabled = true;
+      try{
+        const st = await Cloud.purchase(b.dataset.pid);
+        if (st === 'pending') return toast('承認待ちです。承認されると使えるようになります', { undo:false });
+        if (st !== 'purchased') return;
+        if (!Cloud.isPlus()) return toast('購入を確認できませんでした。「購入を復元」をお試しください', { undo:false });
+        closeAll(); toast('いつか帳プラスになりました', { undo:false });
+        const f = afterPlus; afterPlus = null; if (f) f();
+      }finally{ b.disabled = false; }
+    }, '購入できませんでした');
+  });
+  $('plusRestore').addEventListener('click', () => guard(async () => {
+    const ok = await Cloud.restore();
+    toast(ok ? '購入を復元しました' : '復元できる購入はありませんでした', { undo:false });
+    if (ok){ closeAll(); const f = afterPlus; afterPlus = null; if (f) f(); }
+  }, '復元できませんでした'));
+
+  /* ---------- 表示名 ---------- */
+  let nameResolve = null;
+  function askName(suggest){
+    $('nameInput').value = suggest || '';
+    $('nameScrim').classList.add('open');
+    setTimeout(() => $('nameInput').focus(), 80);
+    return new Promise(res => { nameResolve = res; });
+  }
+  function endName(v){ $('nameScrim').classList.remove('open'); const r = nameResolve; nameResolve = null; if (r) r(v); }
+  $('nameOk').addEventListener('click', () => endName($('nameInput').value.trim()));
+  $('nameSkip').addEventListener('click', () => endName(''));
+
+  /* ---------- 設定 ---------- */
+  async function openSettings(){
+    $('setTerms').href = CFG.termsUrl || '#'; $('setPrivacy').href = CFG.privacyUrl || '#';
+    $('setAffRow').hidden = !affConfigured;
+    $('setAff').setAttribute('aria-pressed', affOn() ? 'true' : 'false');
+    $('setWifiRow').hidden = !Cloud;
+    if (Cloud) $('setWifi').setAttribute('aria-pressed', Cloud.wifiOnly() ? 'true' : 'false');
+    $('setScrim').classList.add('open');
+    const signed = Cloud ? await Cloud.signedIn().catch(() => false) : false;
+    $('setAccount').hidden = !signed; $('setAuth').hidden = !signed;
+    if (signed){
+      const pf = (await Cloud.refreshProfile().catch(() => null)) || Cloud.profile() || {};
+      $('setName').textContent = pf.display_name || '決める';
+      const plus = Cloud.isPlus();
+      $('setPlanSub').textContent = plus ? `利用中（${pf.plan_expires_at ? new Date(pf.plan_expires_at).toLocaleDateString('ja-JP') + 'まで・自動更新' : '有効'}）` : '共有帳をつくれるようになります';
+      $('setPlan').textContent = plus ? '管理' : 'プランを見る';
+    }
+  }
+  $('settingsBtn').addEventListener('click', openSettings);
+  $('setAff').addEventListener('click', () => { store.set(K_AFF, !affOn()); $('setAff').setAttribute('aria-pressed', affOn() ? 'true' : 'false'); render(); });
+  $('setWifi').addEventListener('click', () => { Cloud.setWifiOnly(!Cloud.wifiOnly()); $('setWifi').setAttribute('aria-pressed', Cloud.wifiOnly() ? 'true' : 'false'); });
+  $('setName').addEventListener('click', () => guard(async () => {
+    $('setScrim').classList.remove('open');
+    const v = await askName((Cloud.profile() || {}).display_name || '');
+    if (v){ await Cloud.setDisplayName(v); toast('表示名を変えました', { undo:false }); }
+  }));
+  $('setPlan').addEventListener('click', () => { if (Cloud.isPlus()) Cloud.manage(); else { closeAll(); openPlus(); } });
+  $('setOut').addEventListener('click', () => guard(async () => {
+    if (!confirm('サインアウトしますか？ 共有帳はこの端末から見えなくなります（個人用の帳は残ります）。')) return;
+    await Cloud.signOut(); switchNotebook('personal'); toast('サインアウトしました', { undo:false });
+  }));
+  $('setDelete').addEventListener('click', () => guard(async () => {
+    hapticWarn();
+    if (!confirm('アカウントを削除しますか？ つくった共有帳と写真は消え、元に戻せません。いつか帳プラスの解約は別途「設定」アプリから行ってください。')) return;
+    await Cloud.deleteAccount(); switchNotebook('personal'); toast('アカウントを削除しました', { undo:false });
+  }, 'アカウントを削除できませんでした'));
 
   /* ---------- 受け取り（共有シート・ショートカットなど） ---------- */
   let intakeCat = null, intakeShots = [], intakeNote = '';
@@ -741,7 +1324,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   });
   function paintIntakeCats(){
     $('addCats').innerHTML = cats.map(c =>
-      `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${intakeCat===c.id}">${esc(c.name)}</button>`).join('');
+      `<button class="cat" ${cc(c)} data-c="${esc(c.id)}" aria-pressed="${intakeCat===c.id}">${esc(c.name)}</button>`).join('');
   }
   // 受け取り口は ?title=&text=&url=&cat= の1つだけ。
   // Web版はアドレスから、アプリは共有拡張が置いた内容を同じ形に直して渡す（shots は写真の data URL）
@@ -763,11 +1346,13 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     if (fromQuery) history.replaceState(null, '', location.pathname);
     if (!t && !u && !shots.length) return false;
 
+    if (view === 'album'){ view = 'list'; render(); }
     const want = (p.get('cat') || '').trim();
     const c = cats.find(x => x.id === want || x.name === want);
     if (c) addCat = c.id;
     intakeCat = addCat; intakeShots = shots; intakeNote = lines.join('\n');
     $('addTitle').textContent = u ? '受け取ったページを追加' : shots.length ? '受け取った写真を追加' : '受け取ったメモを追加';
+    $('addWhere').textContent = shared() ? `追加先：${(Cloud.info(nb) || {}).name || '共有帳'}` : '';
     $('addText').value = t; $('addUrl').value = u;
     paintIntakeCats(); paintIntakeShelf();
     closeAll();
@@ -800,7 +1385,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
     u = safeUrl(u);
     if (!t && !u && !intakeShots.length) return closeAll();
-    const it = { id:uid(), cat:intakeCat || cats[0].id, text:t || (u ? host(u) : '写真のメモ'), url:u,
+    const it = { id:newId(), cat:intakeCat || cats[0].id, text:t || (u ? host(u) : '写真のメモ'), url:u,
                  note:intakeNote, photos:[], done:false, created:Date.now(), doneAt:null, rating:0, review:'' };
     for (const d of intakeShots){ try{ it.photos.push(await stash(toBlob(d))); }catch(e){} }
     intakeShots = []; intakeNote = '';
@@ -811,7 +1396,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     toast(`「${it.text.slice(0,12)}」を追加しました`);
   });
 
-  /* ---------- 共有（1件ずつ） ---------- */
+  /* ---------- 共有（1件ずつ送る） ---------- */
   async function shareItem(it){
     const c = catOf(it.cat);
     const head = it.done ? `【やった・${c.name}】${it.text}` : `【${c.name}】${it.text}`;
@@ -824,7 +1409,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
       try{
         const files = [];
         for (const [i, pid] of it.photos.slice(0, 4).entries()){
-          const b = await getPhoto(pid).catch(() => null); if (!b) continue;
+          const b = await photoBlob(pid).catch(() => null); if (!b) continue;
           const r = await P.Filesystem.writeFile({ path:`share/itsuka-${i + 1}.jpg`, directory:'CACHE',
             recursive:true, data:(await dataUrl(b)).split(',')[1] });
           files.push(r.uri);
@@ -855,6 +1440,8 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   }
 
   /* ---------- 編集シート ---------- */
+  const otherNotebooks = () => !Cloud ? [] :
+    [{ id:'personal', name:'個人用の帳' }, ...Cloud.notebooks().filter(n => n.status === 'active')].filter(n => n.id !== nb);
   function openEdit(id, focusRecord){
     const it = items.find(x => x.id === id); if (!it) return;
     editingId = id; editCat = it.cat; editPhotos = it.photos.slice();
@@ -863,27 +1450,41 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     $('editUrl').value = it.url || '';
     $('editNote').value = it.note || '';
     $('editReview').value = it.review || '';
-    $('editWhen').textContent = fmtFull(it.created) + 'に追加'
-      + (it.done && it.doneAt ? `　/　${fmtFull(it.doneAt)}にやった` : '');
+    $('editWhen').textContent = '追加日：' + fmtFull(it.created)
+      + (it.done && it.doneAt ? `　/　やった日：${fmtFull(it.doneAt)}` : '');
+    const by = authorOf(it);
+    $('editBy').hidden = !by; $('editBy').textContent = by ? `${by}さんが書いたメモ` : '';
+    $('reviewLabel').textContent = shared() ? '自分の感想' : '感想';
+    const others = shared() ? (it.reviews || []) : [];
+    $('othersBox').hidden = !others.length;
+    $('othersRevs').innerHTML = others.map(r => `<div class="rv"><div class="who">${esc(Cloud.authorName(r.user))}${r.rating ? starsHTML(r.rating) : ''}</div>
+      ${r.review ? `<p class="rev">${esc(r.review)}</p>` : ''}</div>`).join('');
+    const canDel = !shared() || Cloud.canDelete(nb, it);
+    $('delBtn').disabled = !canDel;
+    $('moveBtn').hidden = !canDel || !otherNotebooks().length;
     paintEditCats(); paintUrl(); paintShelf(); paintRecord();
     $('editScrim').classList.add('open');
+    $('editScrim').querySelector('.sheet').scrollTop = 0;
     if (focusRecord) setTimeout(() => { $('editReview').focus(); $('editReview').scrollIntoView({ block:'center' }); }, 120);
   }
   function paintEditCats(){
     $('editCats').innerHTML = cats.map(c =>
-      `<button class="cat" ${cc(c)} data-c="${c.id}" aria-pressed="${editCat===c.id}">${esc(c.name)}</button>`).join('');
+      `<button class="cat" ${cc(c)} data-c="${esc(c.id)}" aria-pressed="${editCat===c.id}">${esc(c.name)}</button>`).join('');
   }
   function paintUrl(){
     let v = $('editUrl').value.trim();
     if (v && !/^https?:\/\//i.test(v)) v = 'https://' + v;
     const u = safeUrl(v), a = $('editOpen');
     a.setAttribute('aria-disabled', u ? 'false' : 'true');
-    if (u) a.href = u; else a.removeAttribute('href');
+    if (u) a.href = linkFor({ url:u, cat:editCat }); else a.removeAttribute('href');
   }
   function paintShelf(){
-    $('editShelf').innerHTML = editPhotos.map(p =>
-      `<div class="slot" data-p="${p}"><img data-pid="${p}" alt="写真" data-act="view">
-        <button type="button" class="drop" data-act="drop" aria-label="この写真を削除">×</button></div>`).join('') +
+    const it = items.find(x => x.id === editingId) || {};
+    $('editShelf').innerHTML = editPhotos.map(p => {
+      const canDrop = !shared() || Cloud.canDropPhoto(nb, it, p);
+      return `<div class="slot" data-p="${esc(p)}"><img data-pid="${esc(p)}" alt="写真" data-act="view">
+        ${canDrop ? '<button type="button" class="drop" data-act="drop" aria-label="この写真を削除">×</button>' : ''}</div>`;
+    }).join('') +
       (editPhotos.length < MAX_PHOTOS ? `<button type="button" class="slot plus" id="addImg" aria-label="写真を追加">＋</button>` : '');
     hydrate($('editShelf'));
   }
@@ -892,6 +1493,40 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     $('recordBox').hidden = !editDone;
     $('editRate').innerHTML = [1,2,3,4,5].map(v =>
       `<button type="button" data-v="${v}" class="${v <= editRate ? 'on' : ''}" aria-label="${v}">★</button>`).join('');
+  }
+
+  /* ---------- 別の帳に移す ---------- */
+  $('moveBtn').addEventListener('click', () => {
+    $('moveList').innerHTML = otherNotebooks().map(n =>
+      `<button class="nbRow" data-to="${esc(n.id)}"><span>${n.id === 'personal' ? '📒' : '👥'}</span><span class="nm">${esc(n.name)}</span></button>`).join('');
+    $('moveScrim').classList.add('open');
+  });
+  $('moveList').addEventListener('click', e => {
+    const b = e.target.closest('[data-to]'); if (!b) return;
+    guard(() => moveItem(b.dataset.to));
+  });
+  async function moveItem(to){
+    const it = applyEdit(); if (!it) return;
+    const target = otherNotebooks().find(n => n.id === to); if (!target) return;
+    // 写真は端末に揃えてから移す（共有帳の写真は取りにいく）
+    const photos = [];
+    for (const p of it.photos){ if (await photoBlob(p)) photos.push(p); }
+    const moved = { id: to === 'personal' ? uid() : (crypto.randomUUID ? crypto.randomUUID() : uid()),
+      text:it.text, url:it.url, note:it.note, photos, done:it.done, created:it.created, doneAt:it.doneAt,
+      rating:it.rating, review:it.review, catName: catOf(it.cat).name };
+    if (to === 'personal'){
+      const pItems = store.get(KEY, []), pCats = store.get(KEY+':cats', null) || DEFAULT_CATS;
+      const c = pCats.find(x => x.name === moved.catName) || pCats[0];
+      delete moved.catName;
+      pItems.push({ ...moved, cat:c.id });
+      store.set(KEY, pItems);
+    } else if (!Cloud.append(to, moved)){
+      // まだ一度も開いていない帳は、カテゴリが分からないので一度開いてもらう
+      return toast(`先に「${target.name}」を一度開いてください`, { undo:false });
+    }
+    items = items.filter(x => x.id !== it.id);
+    saveItems(); closeAll(); render();
+    toast(`「${it.text.slice(0,12)}」を「${target.name}」に移しました`, { undo:false, act:{ label:'開く', fn:() => switchNotebook(to) } });
   }
 
   /* ---------- カテゴリ管理 ---------- */
@@ -903,7 +1538,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   function renderCatRows(){
     $('catRows').innerHTML = cats.map(c => {
       const n = items.filter(it => it.cat === c.id).length;
-      return `<div class="crow" data-id="${c.id}" ${cc(c)}>
+      return `<div class="crow" data-id="${esc(c.id)}" ${cc(c)}>
         <button class="dot" data-act="color" aria-label="${esc(c.name)}の色を変える"></button>
         <input type="text" value="${esc(c.name)}" maxlength="12" aria-label="カテゴリ名">
         <span class="cnum">${n}件</span>
@@ -999,10 +1634,19 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   $('tabs').addEventListener('click', e => {
     const b = e.target.closest('.tab'); if (!b) return;
     filter = b.dataset.c;
-    if (filter !== 'all' && view === 'list'){ addCat = filter; try{ store.set(KEY+':addcat', filter); }catch(e2){} }
+    if (filter !== 'all' && view === 'list') setAddCat(filter);
     render();
   });
+
+  // 検索：アイコンで開く。文字が入っている間は開いたまま
+  function showSearch(on){
+    $('searchRow').hidden = !on;
+    if (on) setTimeout(() => $('q').focus(), 30);
+  }
+  $('searchBtn').addEventListener('click', () => showSearch($('searchRow').hidden));
+  $('searchClose').addEventListener('click', () => { $('q').value = ''; showSearch(false); render(); });
   $('q').addEventListener('input', render);
+
   $('albumBtn').addEventListener('click', () => { view = 'album'; window.scrollTo(0,0); render(); });
   $('backBtn').addEventListener('click', () => { view = 'list'; window.scrollTo(0,0); render(); });
 
@@ -1023,15 +1667,19 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     it.done = true; it.doneAt = Date.now();
     haptic();
     saveItems(); render();
-    toast(`「${it.text.slice(0,12)}」をやったことに`, { act:{ label:'感想を書く', fn:() => openEdit(it.id, true) } });
+    toast(`「${it.text.slice(0,12)}」を済みに移動しました`, { act:{ label:'感想を書く', fn:() => openEdit(it.id, true) } });
   });
 
   $('undoBtn').addEventListener('click', () => {
-    if (undoSnap){ const s = JSON.parse(undoSnap); items = s.items; cats = s.cats; undoSnap = null; saveItems(); saveCats(); render(); }
+    if (undoSnap){
+      const s = JSON.parse(undoSnap);
+      if (s.nb === nb){ items = s.items; cats = s.cats; saveItems(); saveCats(); render(); }
+      undoSnap = null;
+    }
     $('toast').classList.remove('show');
   });
 
-  $('editCats').addEventListener('click', e => { const b = e.target.closest('.cat'); if (b){ editCat = b.dataset.c; paintEditCats(); } });
+  $('editCats').addEventListener('click', e => { const b = e.target.closest('.cat'); if (b){ editCat = b.dataset.c; paintEditCats(); paintUrl(); } });
   $('editUrl').addEventListener('input', paintUrl);
   $('editShelf').addEventListener('click', async e => {
     const el = e.target.closest('[data-act], #addImg'); if (!el) return;
@@ -1086,7 +1734,9 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     if (!editDone) it.doneAt = null;
     it.done = editDone;
     if (!saveItems()){ Object.assign(it, JSON.parse(before)); return null; }
-    dropped.forEach(p => { dropPhoto(p).catch(()=>{}); urlCache.delete(p); });
+    // 個人用の帳は写真の本体も消す（共有帳はサーバー側で外し、端末のコピーは残す）
+    if (!shared()) dropped.forEach(p => { dropPhoto(p).catch(()=>{}); });
+    dropped.forEach(p => urlCache.delete(p));
     return it;
   }
   $('saveBtn').addEventListener('click', () => { if (applyEdit()){ render(); closeAll(); } });
@@ -1096,10 +1746,25 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   });
   $('delBtn').addEventListener('click', () => {
     const it = items.find(x => x.id === editingId); if (!it) return;
+    if (shared() && !Cloud.canDelete(nb, it)) return toast('削除できるのは作成者か書いた人だけです', { undo:false });
+    hapticWarn();
     snapshot();
     items = items.filter(x => x.id !== editingId);
     saveItems(); closeAll(); render();
     toast(`「${it.text.slice(0,12)}」を削除しました`);
+  });
+
+  // シートは上の取っ手を下に引いても閉じる
+  document.querySelectorAll('.sheet').forEach(sh => {
+    let y0 = null;
+    sh.addEventListener('touchstart', e => { y0 = sh.scrollTop <= 0 && e.target.closest('.grab, h2') ? e.touches[0].clientY : null; }, { passive:true });
+    sh.addEventListener('touchmove', e => { if (y0 != null) sh.style.transform = `translateY(${Math.max(0, e.touches[0].clientY - y0)}px)`; }, { passive:true });
+    sh.addEventListener('touchend', e => {
+      if (y0 == null) return;
+      const dy = (e.changedTouches[0] || {}).clientY - y0;
+      sh.style.transform = ''; y0 = null;
+      if (dy > 90 && sh.closest('.scrim').id !== 'nameScrim' && sh.closest('.scrim').id !== 'srcScrim') closeAll();
+    });
   });
 
   $('catRows').addEventListener('input', e => {
@@ -1119,6 +1784,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     if (cats.length < 2) return;
     const n = items.filter(it => it.cat === c.id).length;
     const fallback = cats.find(x => x.id !== c.id);
+    hapticWarn();
     if (n && !confirm(`「${c.name}」のメモ${n}件は「${fallback.name}」に移ります。削除しますか？`)) return;
     snapshot();
     items.forEach(it => { if (it.cat === c.id) it.cat = fallback.id; });
@@ -1144,24 +1810,28 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   });
 
   function closeAll(){
-    document.querySelectorAll('.scrim').forEach(s => s.classList.remove('open'));
+    document.querySelectorAll('.scrim').forEach(s => { if (s.id !== 'nameScrim') s.classList.remove('open'); });
     editingId = null;
     if (srcResolve) endSource(null);
   }
   document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeAll));
   document.querySelectorAll('.scrim').forEach(s => {
-    if (s.id === 'srcScrim' || s.id === 'viewScrim') return;
+    if (s.id === 'srcScrim' || s.id === 'viewScrim' || s.id === 'nameScrim') return;
     s.addEventListener('click', e => { if (e.target === s) closeAll(); });
   });
   // 写真ビューアはどこをタップしても閉じる。下の編集シートは閉じない
   $('viewScrim').addEventListener('click', () => $('viewScrim').classList.remove('open'));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
 
-  /* ---------- 書き出し / 読み込み（写真もふくむ） ---------- */
-  $('backupHelp').textContent = NATIVE
-    ? 'メモと写真は、この iPhone の中だけに保存されています。アプリを削除するとすべて消えます。ときどき書き出して、「ファイル」や iCloud Drive に保存しておいてください。'
-    : 'メモと写真は、このブラウザの中だけに保存されています。ブラウザのデータを消すと消えます。ときどき書き出して保存しておいてください。';
-  $('exportBtn').addEventListener('click', () => $('backupScrim').classList.add('open'));
+  /* ---------- 書き出し / 読み込み（写真もふくむ。開いている帳が対象） ---------- */
+  $('exportBtn').addEventListener('click', () => {
+    $('backupHelp').textContent = shared()
+      ? 'この共有帳のメモと写真をファイルに書き出します。'
+      : NATIVE
+        ? '個人用の帳のメモと写真は、この iPhone の中だけに保存されています。アプリを削除するとすべて消えます。ときどき書き出して、「ファイル」や iCloud Drive に保存しておいてください。'
+        : 'メモと写真は、このブラウザの中だけに保存されています。ブラウザのデータを消すと消えます。ときどき書き出して保存しておいてください。';
+    $('backupScrim').classList.add('open');
+  });
   $('backupGo').addEventListener('click', () => { closeAll(); exportAll(); });
 
   const stamp = () => {
@@ -1171,10 +1841,11 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
   async function itemWithShots(it){
     const shots = [];
     for (const p of it.photos){
-      const b = await getPhoto(p).catch(() => null);
+      const b = await photoBlob(p).catch(() => null);
       if (b) shots.push(await dataUrl(b));
     }
-    return { ...it, photos:shots };
+    const { reviews, photoBy, author, ...plain } = it;
+    return { ...plain, photos:shots };
   }
   // アプリ：1件ずつファイルに追記してから共有シートで渡す（写真が多くても一度にメモリへ載せない）
   async function exportNative(){
@@ -1230,7 +1901,8 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
               try{ shots.push(await stash(toBlob(s))); }catch(e){}
             }
             added.push({
-              id:x.id, cat: cats.some(c => c.id === x.cat) ? x.cat : cats[0].id,
+              // 共有帳へ読み込むときは、ほかの帳と重ならないよう新しい ID にする
+              id: shared() ? newId() : x.id, cat: cats.some(c => c.id === x.cat) ? x.cat : cats[0].id,
               text:x.text, url: safeUrl(x.url) || urlIn(x.note || '') || '', note:x.note || '',
               photos:shots, done:!!x.done, created:x.created || Date.now(), doneAt:x.doneAt || null,
               rating: typeof x.rating === 'number' ? x.rating : 0, review: typeof x.review === 'string' ? x.review : ''
@@ -1251,7 +1923,7 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     const h = $('composer').hidden ? 0 : $('composer').offsetHeight;
     const r = document.documentElement.style;
     r.setProperty('--wrap-b', (h ? h + 60 : 40) + 'px');
-    r.setProperty('--toast-b', (h ? h + 30 : 40) + 'px');
+    r.setProperty('--toast-b', (h ? h + 16 : 40) + 'px');
   }
   if ('ResizeObserver' in window) new ResizeObserver(fitComposer).observe($('composer'));
 
@@ -1263,14 +1935,53 @@ html.native img,html.native a{-webkit-touch-callout:none;-webkit-user-drag:none}
     }catch(e){}
   }
 
-  if (NATIVE){
-    $('recvBtn').hidden = true;       // 共有シートが標準で使えるので、ショートカットの設定案内は出さない
-    P.App.addListener('appStateChange', st => { if (st.isActive){ takeInbox(); fitText(); } });
-    P.App.addListener('appUrlOpen', () => takeInbox());
-    fitText();
+  /* ---------- 共有帳の手綱 ---------- */
+  if (Cloud){
+    Cloud.init({
+      toast, getPhoto, askName,
+      reload(){
+        if (!shared()) return;
+        const d = Cloud.load(nb);
+        items = d.items; if (d.cats.length) cats = d.cats;
+        normalize(); render();
+      },
+      refreshChrome(){ renderHeader(); },
+      syncChanged(){ renderHeader(); },
+    });
+    if (shared()) Cloud.open(nb);
+  }
+  // 作成者に届いた参加申請を知らせる（アプリ内）
+  function noticePending(){
+    if (!Cloud) return;
+    const total = Cloud.notebooks().reduce((a, n) => a + (n.pending_count || 0), 0);
+    const seen = store.get(K_SEENPEND, 0);
+    if (total > seen){
+      const n = Cloud.notebooks().find(x => x.pending_count);
+      toast(`「${n.name}」に参加申請が届いています`, { undo:false, act:{ label:'見る', fn:() => { switchNotebook(n.id); setTimeout(openNbSettings, 300); } } });
+    }
+    try{ store.set(K_SEENPEND, total); }catch(e){}
+  }
+  // 招待リンク（itsuka://join?t=…）から開いたとき
+  function handleUrl(url){
+    if (!url) return;
+    if (/^itsuka:\/\/join/i.test(url) && Cloud) return joinWith(url);
+    takeInbox();
   }
 
-  if (migrated) saveItems();
+  if (NATIVE){
+    $('recvBtn').hidden = true;       // 共有シートが標準で使えるので、ショートカットの設定案内は出さない
+    P.App.addListener('appStateChange', st => {
+      if (!st.isActive) return;
+      takeInbox(); fitText();
+      if (Cloud) Cloud.resume().then(noticePending).catch(() => {});
+    });
+    P.App.addListener('appUrlOpen', e => handleUrl(e && e.url));
+    P.App.getLaunchUrl().then(r => { if (r && r.url && /join/.test(r.url)) handleUrl(r.url); }).catch(() => {});
+    fitText();
+  }
+  if (Cloud) Cloud.resume().then(noticePending).catch(() => {});
+
+  if (migrated && !shared()){ saveItems(); saveCats(); }
   render();
   fitComposer();
   liftLegacy();

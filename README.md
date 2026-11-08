@@ -1,11 +1,18 @@
 # いつか帳（iOS アプリ + Web 版）
 
+共有帳・いつか帳プラスを動かす準備は [docs/共有帳の準備.md](docs/共有帳の準備.md)。
+
 現行の単一 HTML の PWA を Capacitor 8 で包んだ iOS アプリ。画面と保存処理は Web 版と同じ `www/index.html` を共有し、
 iOS アプリのときだけネイティブ機能に差し替える（`window.ITSUKA_NATIVE`）。
 
 ```
-www/                 アプリと Web 版で共通（index.html, icons/, capacitor.js）
-web/                 Web 版だけのもの（sw.js, manifest.json, privacy.html, support.html）
+www/                 アプリと Web 版で共通
+  index.html         画面と個人用の帳（帳の切り替えの土台もここ）
+  cloud.js           共有帳：ログイン・同期（未送信キュー）・招待・いつか帳プラス。アプリ＋Supabase設定ありのときだけ動く
+  config.js          Supabase の接続先、商品ID、アフィリエイトID（秘密の値は入れない）
+web/                 Web 版だけのもの（sw.js, manifest.json, privacy.html, support.html, join.html）
+supabase/            共有帳のサーバー（migrations/0001_init.sql と Edge Functions）
+docs/                共有帳・プラスを動かすための準備手順
 ios/App/             Capacitor が生成した Xcode プロジェクト（SPM）
 ios/ShareExtension/  共有シート受信（Swift）。Inbox.swift は本体にも含める
 scripts/             setup-xcode.rb / make-assets.mjs / build-web.mjs / vendor.mjs

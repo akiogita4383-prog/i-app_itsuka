@@ -33,7 +33,7 @@ def ensure_file(group, path)
   group.files.find { |f| f.path == path } || group.new_reference(path)
 end
 
-%w[MainViewController.swift ShareInboxPlugin.swift].each do |name|
+%w[MainViewController.swift ShareInboxPlugin.swift AppleSignInPlugin.swift StorePlugin.swift].each do |name|
   ref = ensure_file(app_group, name)
   app.source_build_phase.add_file_reference(ref, true)
 end

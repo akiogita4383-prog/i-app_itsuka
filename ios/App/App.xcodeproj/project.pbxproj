@@ -19,11 +19,13 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		88A0E75D85154D76B6924CAA /* AppleSignInPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB896D44CAE229E9FF43B98 /* AppleSignInPlugin.swift */; };
 		8D48B49FAEF72CE2A07C4356 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DBC39F6BD7E3B5CF1BE6C27 /* Foundation.framework */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
 		BCA64BA0AE5C06B089950A60 /* Inbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0D24729FD27C679366CAE2 /* Inbox.swift */; };
 		CCBFEF3A3ADB1208CC5FAE4D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7157C095E5C3BAEA28250300 /* ShareViewController.swift */; };
 		D6AB992E0E8F26742F982EDB /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 99C278B4A5A55ED276E13084 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EBFA727C0BCA4AA3A5F85348 /* StorePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB12E50948A91479645E3FD /* StorePlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +57,7 @@
 		2F5A0D83B73CB5276DB8E8E2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		3DBC39F6BD7E3B5CF1BE6C27 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		4AB896D44CAE229E9FF43B98 /* AppleSignInPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleSignInPlugin.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -72,6 +75,7 @@
 		9E532020FC4CD48BB1586788 /* ShareInboxPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareInboxPlugin.swift; sourceTree = "<group>"; };
 		BE0D24729FD27C679366CAE2 /* Inbox.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Inbox.swift; sourceTree = "<group>"; };
 		CE9E76A16347988AE6AF9310 /* MainViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		FAB12E50948A91479645E3FD /* StorePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StorePlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +134,8 @@
 				9E532020FC4CD48BB1586788 /* ShareInboxPlugin.swift */,
 				98D67187D1D3A4F8B6E24B64 /* App.entitlements */,
 				2F5A0D83B73CB5276DB8E8E2 /* PrivacyInfo.xcprivacy */,
+				4AB896D44CAE229E9FF43B98 /* AppleSignInPlugin.swift */,
+				FAB12E50948A91479645E3FD /* StorePlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -276,6 +282,8 @@
 				419A8CE79A87C1B06D92929C /* MainViewController.swift in Sources */,
 				0E06C7978E96D235D477D767 /* ShareInboxPlugin.swift in Sources */,
 				2FDF65512BE590591C53D58A /* Inbox.swift in Sources */,
+				88A0E75D85154D76B6924CAA /* AppleSignInPlugin.swift in Sources */,
+				EBFA727C0BCA4AA3A5F85348 /* StorePlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>いつか帳への招待</title>
+<style>
+:root{color-scheme:light dark;--bg:#F7F1E8;--paper:#fff;--ink:#2A2520;--sub:#8A8075}
+@media (prefers-color-scheme:dark){:root{--bg:#1C1915;--paper:#2A2621;--ink:#F3EEE6;--sub:#A99F92}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Maru Gothic ProN","Hiragino Sans",system-ui,sans-serif;line-height:1.7}
+main{max-width:460px;margin:0 auto;padding:48px 20px;text-align:center}
+img{width:96px;height:96px;border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+h1{font-size:22px;margin:18px 0 6px}
+p{color:var(--sub);font-size:15px}
+a.btn{display:block;margin:14px 0;padding:15px;border-radius:14px;background:var(--ink);color:var(--paper);font-weight:700;text-decoration:none}
+a.sub{display:block;padding:12px;color:#2F6FB3;font-weight:700;text-decoration:none}
+</style></head>
+<body><main>
+  <img src="icons/icon-192.png" alt="いつか帳">
+  <h1>共有帳に招待されています</h1>
+  <p>いつか帳のアプリで開くと、参加を申請できます。帳をつくった人が承認すると、中身が見られるようになります。</p>
+  <a class="btn" id="open">いつか帳で開く</a>
+  <a class="sub" href="https://apps.apple.com/app/id6831889070">App Store で入手（無料）</a>
+  <p style="font-size:12px">アプリを入れたあと、もう一度このリンクを開いてください。<br>リンクの有効期限は7日間です。</p>
+</main>
+<script>
+  var t = new URLSearchParams(location.search).get('t') || '';
+  var deep = 'itsuka://join?t=' + encodeURIComponent(t);
+  document.getElementById('open').href = deep;
+  if (t) setTimeout(function(){ location.href = deep; }, 300);
+</script>
+</body></html>

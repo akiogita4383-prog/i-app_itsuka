@@ -1,0 +1,3 @@
+# supabase CLI 用の最小設定（関数のデプロイにだけ使う）
+[functions.app-store-notifications]
+verify_jwt = false

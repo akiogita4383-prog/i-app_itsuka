@@ -10,8 +10,10 @@ class MainViewController: CAPBridgeViewController {
     }
 
     override func capacitorDidLoad() {
-        // アプリ内に置いた独自プラグイン（共有シートの受け取り口）
+        // アプリ内に置いた独自プラグイン（共有シートの受け取り口・Sign in with Apple・課金）
         bridge?.registerPluginInstance(ShareInboxPlugin())
+        bridge?.registerPluginInstance(AppleSignInPlugin())
+        bridge?.registerPluginInstance(StorePlugin())
 
         view.backgroundColor = Self.pageBackground
         webView?.isOpaque = false
