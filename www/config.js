@@ -1,9 +1,9 @@
 // いつか帳の設定。秘密の値は入れない（ここはアプリにそのまま入る）。
 // supabaseUrl / supabaseAnonKey が空のあいだは共有帳の機能は出ず、個人用の帳だけで動く。
 window.ITSUKA_CONFIG = {
-  // Supabase → Project Settings → API の「Project URL」と「anon public」キー
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  // Supabase の Project URL と Publishable key（公開用。アプリに入れてよい値）
+  supabaseUrl: 'https://wntirdbenosymistamqg.supabase.co',
+  supabaseAnonKey: 'sb_publishable__VkI_mRef2oF2MClahwbJA_bZlmpDZG',
 
   // 招待リンクの受け口（web/join.html を GitHub Pages に置いた場所）
   inviteBase: 'https://akiogita4383-prog.github.io/i-app_itsuka/join.html',
